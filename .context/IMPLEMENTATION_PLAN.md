@@ -41,7 +41,7 @@ src/tests/e2e/example.test.ts
 
 ---
 
-## Phase 2: Add Required shadcn Components
+## Phase 2: Add Required shadcn Components ✅ COMPLETE
 
 Run shadcn CLI to add:
 
@@ -64,7 +64,7 @@ These provide:
 
 ---
 
-## Phase 3: Create Type Definitions
+## Phase 3: Create Type Definitions ✅ COMPLETE
 
 ### `src/types/recipient.ts`
 
@@ -102,7 +102,7 @@ export interface Session {
 
 ---
 
-## Phase 4: Create File IPC Handlers
+## Phase 4: Create File IPC Handlers ✅ COMPLETE
 
 ### `src/ipc/file/schemas.ts`
 
@@ -130,21 +130,23 @@ export interface Session {
 
 ---
 
-## Phase 5: Create OpenRouter Service
+## Phase 5: Create OpenRouter Service ✅ COMPLETE
 
 ### `src/services/openrouter.ts`
 
-Functions to call OpenRouter API:
+Functions to call OpenRouter API using @openrouter/sdk:
 
-- `generateMessage(apiKey, model, recipientInfo, customPrompt)` - Initial generation
-- `regenerateMessage(apiKey, model, previousMessage, modificationRequest)` - Refinement
-- `fetchAvailableModels(apiKey)` - Get model list (optional, can hardcode popular ones)
+- `generateMessage(options)` - Initial generation with recipient context
+- `regenerateMessage(options)` - Refinement with previous message and modification request
+- `fetchAvailableModels(apiKey)` - Get model list (filters to popular providers)
+- `getDefaultModels()` - Returns hardcoded list of popular models
+- `testConnection(apiKey)` - Validates API key works
 
-System prompt template for thank you card generation.
+System prompt template for thank you card generation included.
 
 ---
 
-## Phase 6: Create State Management
+## Phase 6: Create State Management ✅ COMPLETE
 
 ### `src/context/session-context.tsx`
 
@@ -155,12 +157,14 @@ React Context for session state:
 - `updateRecipient(id, updates)`
 - `currentRecipientId: string | null`
 - `setCurrentRecipientId(id)`
+- `saveCurrentSession(saveAs?)` - Persists session to file
+- `isDirty: boolean` - Tracks unsaved changes
 
-Provider wraps the app, persists to file on changes.
+Provider wraps the app via `__root.tsx`, persists to file on demand.
 
 ---
 
-## Phase 7: Create Route Pages
+## Phase 7: Create Route Pages ✅ COMPLETE
 
 ### Route Structure
 
@@ -255,7 +259,7 @@ src/routes/
 ## Implementation Order
 
 1. ✅ **Phase 1**: Strip unused features (clean slate)
-2. **Phase 2**: Add shadcn components
+2. ✅ **Phase 2**: Add shadcn components
 3. **Phase 3**: Create types
 4. **Phase 4**: Create file IPC handlers
 5. **Phase 6**: Create session context

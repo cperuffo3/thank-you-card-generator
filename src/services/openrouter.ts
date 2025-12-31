@@ -1,0 +1,197 @@
+import { OpenRouter } from '@openrouter/sdk';
+import type { Recipient } from '@/types/recipient';
+
+const SYSTEM_PROMPT = `You are an expert at writing heartfelt, personalized wedding thank you card messages.
+
+Guidelines:
+- Keep messages warm, sincere, and personal
+- Reference the specific gift when provided
+- Keep messages concise (2-4 sentences ideal for a card)
+- Match the formality to the relationship (more formal for business contacts, warmer for family/friends)
+- Do not include a greeting or sign-off - just the body of the thank you message
+- Avoid generic phrases like "it means so much" - be specific and genuine`;
+
+const DEFAULT_MODELS = [
+  { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4' },
+  { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o' },
+  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
+  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash' },
+];
+
+export interface OpenRouterModel {
+  id: string;
+  name: string;
+}
+
+export interface GenerateMessageOptions {
+  apiKey: string;
+  model: string;
+  recipient: Recipient;
+}
+
+export interface RegenerateMessageOptions {
+  apiKey: string;
+  model: string;
+  previousMessage: string;
+  modificationRequest: string;
+  recipient: Recipient;
+}
+
+function createClient(apiKey: string): OpenRouter {
+  return new OpenRouter({
+    apiKey,
+    httpReferer: 'https://github.com/wedding-thank-you-card-generator',
+    xTitle: 'Wedding Thank You Card Generator',
+  });
+}
+
+function buildRecipientContext(recipient: Recipient): string {
+  const parts: string[] = [];
+
+  // Build name string
+  const primaryName = [recipient.title, recipient.firstName, recipient.lastName]
+    .filter(Boolean)
+    .join(' ');
+  const partnerName = [
+    recipient.partnerTitle,
+    recipient.partnerFirst,
+    recipient.partnerLast,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  if (primaryName && partnerName) {
+    parts.push(`Recipients: ${primaryName} and ${partnerName}`);
+  } else if (primaryName) {
+    parts.push(`Recipient: ${primaryName}`);
+  }
+
+  if (recipient.company) {
+    parts.push(`Company: ${recipient.company}`);
+  }
+
+  if (recipient.gift) {
+    parts.push(`Gift: ${recipient.gift}`);
+  }
+
+  if (recipient.giftValue) {
+    parts.push(`Gift Value: ${recipient.giftValue}`);
+  }
+
+  return parts.join('\n');
+}
+
+export async function generateMessage(
+  options: GenerateMessageOptions
+): Promise<string> {
+  const { apiKey, model, recipient } = options;
+  const client = createClient(apiKey);
+
+  const recipientContext = buildRecipientContext(recipient);
+  const userPrompt = recipient.customPrompt
+    ? `${recipientContext}\n\nAdditional context: ${recipient.customPrompt}`
+    : recipientContext;
+
+  const result = client.callModel({
+    model,
+    input: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      {
+        role: 'user',
+        content: `Write a thank you message for this wedding gift:\n\n${userPrompt}`,
+      },
+    ],
+  });
+
+  const text = await result.getText();
+  return text.trim();
+}
+
+export async function regenerateMessage(
+  options: RegenerateMessageOptions
+): Promise<string> {
+  const { apiKey, model, previousMessage, modificationRequest, recipient } =
+    options;
+  const client = createClient(apiKey);
+
+  const recipientContext = buildRecipientContext(recipient);
+
+  const result = client.callModel({
+    model,
+    input: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      {
+        role: 'user',
+        content: `Write a thank you message for this wedding gift:\n\n${recipientContext}`,
+      },
+      { role: 'assistant', content: previousMessage },
+      {
+        role: 'user',
+        content: `Please modify the message with these changes: ${modificationRequest}`,
+      },
+    ],
+  });
+
+  const text = await result.getText();
+  return text.trim();
+}
+
+export async function fetchAvailableModels(
+  apiKey: string
+): Promise<OpenRouterModel[]> {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.warn('Failed to fetch models, using defaults');
+      return DEFAULT_MODELS;
+    }
+
+    const data = (await response.json()) as {
+      data: Array<{ id: string; name: string }>;
+    };
+
+    // Filter to popular/recommended models and sort by name
+    const popularPrefixes = [
+      'anthropic/',
+      'openai/',
+      'google/',
+      'meta-llama/',
+      'mistralai/',
+    ];
+
+    const models = data.data
+      .filter((m) => popularPrefixes.some((prefix) => m.id.startsWith(prefix)))
+      .map((m) => ({ id: m.id, name: m.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return models.length > 0 ? models : DEFAULT_MODELS;
+  } catch (error) {
+    console.warn('Error fetching models:', error);
+    return DEFAULT_MODELS;
+  }
+}
+
+export function getDefaultModels(): OpenRouterModel[] {
+  return DEFAULT_MODELS;
+}
+
+export async function testConnection(apiKey: string): Promise<boolean> {
+  try {
+    const client = createClient(apiKey);
+    const result = client.callModel({
+      model: 'openai/gpt-4o-mini',
+      input: 'Say "OK" and nothing else.',
+    });
+
+    const text = await result.getText();
+    return text.toLowerCase().includes('ok');
+  } catch {
+    return false;
+  }
+}

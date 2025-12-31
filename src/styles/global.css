@@ -7,6 +7,26 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Welcome page gradients */
+  --gradient-page: linear-gradient(136deg, #faf5ff 0%, #eff6ff 50%, #fdf2f8 100%);
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+
+  /* Welcome page colors */
+  --text-heading: #111827;
+  --text-body: #4b5563;
+  --text-muted: #6b7280;
+  --text-subtle: #9ca3af;
+  --border-light: #e5e7eb;
+  --bg-info: #dbeafe;
+  --text-info: #1d4ed8;
+  --divider-color: #d1d5db;
+
+  /* Welcome page shadows */
+  --shadow-card: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-icon: 0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-hero: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -78,6 +98,23 @@
 @theme inline {
   --font-sans: "Geist", sans-serif;
   --font-mono: "Geist Mono", monospace;
+
+  /* Custom design tokens */
+  --color-text-heading: var(--text-heading);
+  --color-text-body: var(--text-body);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-border-light: var(--border-light);
+  --color-bg-info: var(--bg-info);
+  --color-text-info: var(--text-info);
+  --color-divider: var(--divider-color);
+
+  /* Shadows */
+  --shadow-card: var(--shadow-card);
+  --shadow-icon: var(--shadow-icon);
+  --shadow-hero: var(--shadow-hero);
+
+  /* Sidebar colors */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
