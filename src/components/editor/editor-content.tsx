@@ -404,7 +404,7 @@ export function EditorContent({
               value={recipient.customPrompt || ""}
               onChange={(e) => handleCustomPromptChange(e.target.value)}
               placeholder="Add any special context about this recipient..."
-              className="min-h-24 resize-none border-gray-300"
+              className="min-h-16 resize-none border-gray-300"
             />
           </div>
 
