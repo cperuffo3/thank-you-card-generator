@@ -73,16 +73,19 @@ async function getCryptoKey(): Promise<CryptoKey> {
  * Create card file data from current session and settings
  * @param includeRecipients - If false, recipients array will be empty (for settings-only export)
  */
-export function createCardFileData(data: {
-  // Settings
-  openRouterApiKey: string;
-  model: string;
-  googleMapsApiKey: string;
-  systemPrompt: string;
-  userPromptTemplate: string;
-  // Session (optional - for settings-only export)
-  recipients?: Recipient[];
-}, includeRecipients: boolean = true): CardFileData {
+export function createCardFileData(
+  data: {
+    // Settings
+    openRouterApiKey: string;
+    model: string;
+    googleMapsApiKey: string;
+    systemPrompt: string;
+    userPromptTemplate: string;
+    // Session (optional - for settings-only export)
+    recipients?: Recipient[];
+  },
+  includeRecipients: boolean = true,
+): CardFileData {
   return {
     version: CARD_FILE_VERSION,
     magic: CARD_FILE_MAGIC,
@@ -91,7 +94,7 @@ export function createCardFileData(data: {
     googleMapsApiKey: data.googleMapsApiKey,
     systemPrompt: data.systemPrompt,
     userPromptTemplate: data.userPromptTemplate,
-    recipients: includeRecipients ? (data.recipients || []) : [],
+    recipients: includeRecipients ? data.recipients || [] : [],
     exportedAt: new Date().toISOString(),
   };
 }
@@ -114,7 +117,7 @@ export async function encryptCardFile(data: CardFileData): Promise<string> {
   const encrypted = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     key,
-    stringToArrayBuffer(plaintext)
+    stringToArrayBuffer(plaintext),
   );
 
   // Combine IV and encrypted data
@@ -129,7 +132,7 @@ export async function encryptCardFile(data: CardFileData): Promise<string> {
  * Decrypt base64 string back to card file data
  */
 export async function decryptCardFile(
-  encryptedBase64: string
+  encryptedBase64: string,
 ): Promise<CardFileData> {
   const key = await getCryptoKey();
   const combined = new Uint8Array(base64ToArrayBuffer(encryptedBase64));
@@ -141,7 +144,7 @@ export async function decryptCardFile(
   const decrypted = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv },
     key,
-    encrypted
+    encrypted,
   );
 
   const plaintext = arrayBufferToString(decrypted);
@@ -154,7 +157,7 @@ export async function decryptCardFile(
 
   if (data.version !== CARD_FILE_VERSION) {
     throw new Error(
-      `Unsupported card file version: ${data.version}. Expected: ${CARD_FILE_VERSION}`
+      `Unsupported card file version: ${data.version}. Expected: ${CARD_FILE_VERSION}`,
     );
   }
 

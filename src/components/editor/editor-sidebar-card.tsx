@@ -76,9 +76,9 @@ function hasGiftInfo(recipient: Recipient): boolean {
 function hasAddressInfo(recipient: Recipient): boolean {
   return Boolean(
     recipient.address1?.trim() &&
-      recipient.city?.trim() &&
-      recipient.state?.trim() &&
-      recipient.zip?.trim(),
+    recipient.city?.trim() &&
+    recipient.state?.trim() &&
+    recipient.zip?.trim(),
   );
 }
 

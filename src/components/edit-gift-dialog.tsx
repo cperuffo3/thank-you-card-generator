@@ -132,7 +132,7 @@ function EditGiftDialogContent({
                 setLocalGiftValue(value);
               }}
               placeholder="0.00"
-              className="h-12 rounded-xl border-2 border-gray-200 bg-white pl-10 pr-5 text-base placeholder:text-gray-400 focus:border-indigo-500"
+              className="h-12 rounded-xl border-2 border-gray-200 bg-white pr-5 pl-10 text-base placeholder:text-gray-400 focus:border-indigo-500"
             />
           </div>
           <p className="text-xs text-gray-500">

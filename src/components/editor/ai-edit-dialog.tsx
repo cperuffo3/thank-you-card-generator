@@ -90,7 +90,7 @@ function AIEditDialogContent({
             Current Message
           </label>
           <div className="max-h-48 overflow-y-auto rounded-xl border-2 border-gray-200 bg-gray-50 p-4">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
               {currentMessage}
             </p>
           </div>

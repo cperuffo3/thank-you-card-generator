@@ -77,7 +77,8 @@ function RecipientEditDialogContent({
   });
 
   // Track validation status changes from address autocomplete
-  const [validationStatus, setValidationStatus] = useState<AddressValidationStatus | null>(null);
+  const [validationStatus, setValidationStatus] =
+    useState<AddressValidationStatus | null>(null);
 
   // Recalculate addressTo when name fields change (if not overridden)
   const recalculateAddressTo = (data: typeof formData) => {
@@ -93,22 +94,32 @@ function RecipientEditDialogContent({
   };
 
   // Fields that trigger addressTo recalculation
-  const nameFields = ["title", "firstName", "lastName", "partnerTitle", "partnerFirst", "partnerLast"];
+  const nameFields = [
+    "title",
+    "firstName",
+    "lastName",
+    "partnerTitle",
+    "partnerFirst",
+    "partnerLast",
+  ];
 
-  const handleChange = (field: keyof typeof formData) => (
-    e: React.ChangeEvent<HTMLInputElement>
+  const handleChange =
+    (field: keyof typeof formData) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => {
+        const updated = { ...prev, [field]: e.target.value };
+        // Recalculate addressTo if a name field changed and not overridden
+        if (nameFields.includes(field)) {
+          updated.addressTo = recalculateAddressTo(updated);
+        }
+        return updated;
+      });
+    };
+
+  const handleTitleChange = (
+    field: "title" | "partnerTitle",
+    value: string,
   ) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [field]: e.target.value };
-      // Recalculate addressTo if a name field changed and not overridden
-      if (nameFields.includes(field)) {
-        updated.addressTo = recalculateAddressTo(updated);
-      }
-      return updated;
-    });
-  };
-
-  const handleTitleChange = (field: "title" | "partnerTitle", value: string) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value === "none" ? "" : value };
       // Recalculate addressTo when title changes
@@ -300,7 +311,9 @@ function RecipientEditDialogContent({
               </label>
               <Select
                 value={formData.partnerTitle || "none"}
-                onValueChange={(value) => handleTitleChange("partnerTitle", value)}
+                onValueChange={(value) =>
+                  handleTitleChange("partnerTitle", value)
+                }
               >
                 <SelectTrigger className="h-11! w-full rounded-xl border-2 border-gray-200 bg-white px-4 text-sm">
                   <SelectValue placeholder="Title" />
@@ -376,7 +389,8 @@ function RecipientEditDialogContent({
             )}
           </div>
           <p className="text-xs text-gray-500">
-            This is the formal name line that appears on the envelope. It's automatically generated from the names above but can be customized.
+            This is the formal name line that appears on the envelope. It's
+            automatically generated from the names above but can be customized.
           </p>
         </div>
 
@@ -392,9 +406,16 @@ function RecipientEditDialogContent({
             value={currentAddress}
             onChange={handleAddressChange}
             onValidationChange={setValidationStatus}
-            isVerified={validationStatus?.isVerified ?? recipient.addressValidated}
-            formattedAddress={validationStatus?.formattedAddress ?? recipient.formattedAddress}
-            validationError={validationStatus?.validationError ?? recipient.addressValidationError}
+            isVerified={
+              validationStatus?.isVerified ?? recipient.addressValidated
+            }
+            formattedAddress={
+              validationStatus?.formattedAddress ?? recipient.formattedAddress
+            }
+            validationError={
+              validationStatus?.validationError ??
+              recipient.addressValidationError
+            }
             googleMapsApiKey={googleMapsApiKey}
           />
 

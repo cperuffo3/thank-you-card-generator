@@ -32,6 +32,7 @@ When you run `npm run release`, the following happens automatically:
 8. **GitHub release**: Creates a draft release on GitHub
 
 After the tag is pushed, the GitHub Actions workflow automatically:
+
 - Builds the app for macOS and Windows
 - Uploads build artifacts to the draft release
 
@@ -49,19 +50,19 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) t
 
 ### Types
 
-| Type | Description | Appears in Changelog |
-|------|-------------|---------------------|
-| `feat` | New feature | Features |
-| `fix` | Bug fix | Bug Fixes |
-| `perf` | Performance improvement | Performance Improvements |
-| `revert` | Reverts a previous commit | Reverts |
-| `docs` | Documentation only | Documentation |
-| `style` | Code style (formatting, etc.) | Styles |
-| `refactor` | Code refactoring | Code Refactoring |
-| `test` | Adding/updating tests | Tests |
-| `build` | Build system changes | Build System |
-| `ci` | CI/CD changes | CI/CD |
-| `chore` | Other changes | Hidden (not shown) |
+| Type       | Description                   | Appears in Changelog     |
+| ---------- | ----------------------------- | ------------------------ |
+| `feat`     | New feature                   | Features                 |
+| `fix`      | Bug fix                       | Bug Fixes                |
+| `perf`     | Performance improvement       | Performance Improvements |
+| `revert`   | Reverts a previous commit     | Reverts                  |
+| `docs`     | Documentation only            | Documentation            |
+| `style`    | Code style (formatting, etc.) | Styles                   |
+| `refactor` | Code refactoring              | Code Refactoring         |
+| `test`     | Adding/updating tests         | Tests                    |
+| `build`    | Build system changes          | Build System             |
+| `ci`       | CI/CD changes                 | CI/CD                    |
+| `chore`    | Other changes                 | Hidden (not shown)       |
 
 ### Examples
 
@@ -101,6 +102,7 @@ Running `npm run release` will prompt you interactively:
 ```
 
 You'll also be prompted to confirm:
+
 - Committing the changelog
 - Tagging the release
 - Pushing to GitHub

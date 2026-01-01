@@ -58,9 +58,7 @@ function EditorPage() {
     }
   }, [recipientsParam, session]);
 
-  const currentRecipient = recipients.find(
-    (r) => r.id === currentRecipientId,
-  );
+  const currentRecipient = recipients.find((r) => r.id === currentRecipientId);
 
   const currentIndex =
     recipients.findIndex((r) => r.id === currentRecipientId) ?? -1;
@@ -180,7 +178,9 @@ function EditorPage() {
         toast.success("Session saved successfully");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save session");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save session",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -260,9 +260,7 @@ function EditorPage() {
           />
         ) : (
           <div className="flex flex-1 items-center justify-center bg-gray-50">
-            <p className="text-gray-500">
-              Select a recipient from the sidebar
-            </p>
+            <p className="text-gray-500">Select a recipient from the sidebar</p>
           </div>
         )}
       </div>

@@ -16,7 +16,7 @@ let filePathToOpen: string | null = null;
 
 // Check for .card file in command line args (Windows file association)
 if (process.platform === "win32") {
-  const cardFile = process.argv.find(arg => arg.endsWith(".card"));
+  const cardFile = process.argv.find((arg) => arg.endsWith(".card"));
   if (cardFile) {
     filePathToOpen = cardFile;
   }
@@ -109,7 +109,7 @@ if (!gotTheLock) {
       mainWindow.focus();
 
       // Check for .card file in command line
-      const cardFile = commandLine.find(arg => arg.endsWith(".card"));
+      const cardFile = commandLine.find((arg) => arg.endsWith(".card"));
       if (cardFile) {
         mainWindow.webContents.send("open-card-file", cardFile);
       }

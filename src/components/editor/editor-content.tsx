@@ -162,7 +162,7 @@ export function EditorContent({
 
   const handleSavePromptSettings = (
     newSystemPrompt: string,
-    newUserPromptTemplate: string
+    newUserPromptTemplate: string,
   ) => {
     setSystemPrompt(newSystemPrompt);
     setUserPromptTemplate(newUserPromptTemplate);
@@ -397,9 +397,7 @@ export function EditorContent({
                     <Cog className="size-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  Configure AI prompt settings
-                </TooltipContent>
+                <TooltipContent>Configure AI prompt settings</TooltipContent>
               </Tooltip>
             </div>
             <Textarea

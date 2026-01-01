@@ -203,7 +203,11 @@ interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   recipients: Recipient[];
-  onExport: (recipients: Recipient[], fields: (keyof Recipient)[], filename: string) => void;
+  onExport: (
+    recipients: Recipient[],
+    fields: (keyof Recipient)[],
+    filename: string,
+  ) => void;
 }
 
 const CATEGORIES: Record<Category, { label: string; icon: typeof faUser }> = {
@@ -798,7 +802,9 @@ export function ExportDialog({
     } else if (option === "messages") {
       const approved = recipients.filter((r) => r.isApproved);
       if (approved.length === 0) {
-        toast.error("No approved recipients to export. Please approve some messages first.");
+        toast.error(
+          "No approved recipients to export. Please approve some messages first.",
+        );
         return;
       }
       onExport(approved, MESSAGES_EXPORT_FIELDS, "Thank You Card Messages.csv");

@@ -56,11 +56,11 @@ export function EditorSidebar({
     <aside className="flex h-full w-80 shrink-0 flex-col border-r border-gray-200 bg-white">
       {/* Search Header */}
       <div className="shrink-0 border-b border-gray-200 px-4 py-4">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+        <h2 className="mb-3 text-xs font-semibold tracking-wider text-gray-500 uppercase">
           Recipients
         </h2>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-gray-400" />
           <Input
             type="text"
             placeholder="Search recipients..."

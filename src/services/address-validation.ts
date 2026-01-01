@@ -4,62 +4,62 @@
 // Common country name to ISO 3166-1 alpha-2 code mapping
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   "united states": "US",
-  "usa": "US",
+  usa: "US",
   "u.s.a.": "US",
   "u.s.": "US",
   "united states of america": "US",
-  "canada": "CA",
+  canada: "CA",
   "united kingdom": "GB",
   "great britain": "GB",
-  "england": "GB",
-  "australia": "AU",
-  "germany": "DE",
-  "france": "FR",
-  "italy": "IT",
-  "spain": "ES",
-  "mexico": "MX",
-  "japan": "JP",
-  "china": "CN",
-  "india": "IN",
-  "brazil": "BR",
-  "netherlands": "NL",
-  "belgium": "BE",
-  "switzerland": "CH",
-  "austria": "AT",
-  "ireland": "IE",
+  england: "GB",
+  australia: "AU",
+  germany: "DE",
+  france: "FR",
+  italy: "IT",
+  spain: "ES",
+  mexico: "MX",
+  japan: "JP",
+  china: "CN",
+  india: "IN",
+  brazil: "BR",
+  netherlands: "NL",
+  belgium: "BE",
+  switzerland: "CH",
+  austria: "AT",
+  ireland: "IE",
   "new zealand": "NZ",
-  "sweden": "SE",
-  "norway": "NO",
-  "denmark": "DK",
-  "finland": "FI",
-  "portugal": "PT",
-  "greece": "GR",
-  "poland": "PL",
+  sweden: "SE",
+  norway: "NO",
+  denmark: "DK",
+  finland: "FI",
+  portugal: "PT",
+  greece: "GR",
+  poland: "PL",
   "czech republic": "CZ",
-  "czechia": "CZ",
+  czechia: "CZ",
   "south korea": "KR",
-  "korea": "KR",
-  "singapore": "SG",
+  korea: "KR",
+  singapore: "SG",
   "hong kong": "HK",
-  "taiwan": "TW",
-  "philippines": "PH",
-  "thailand": "TH",
-  "vietnam": "VN",
-  "indonesia": "ID",
-  "malaysia": "MY",
+  taiwan: "TW",
+  philippines: "PH",
+  thailand: "TH",
+  vietnam: "VN",
+  indonesia: "ID",
+  malaysia: "MY",
   "south africa": "ZA",
-  "argentina": "AR",
-  "chile": "CL",
-  "colombia": "CO",
-  "peru": "PE",
-  "israel": "IL",
+  argentina: "AR",
+  chile: "CL",
+  colombia: "CO",
+  peru: "PE",
+  israel: "IL",
   "united arab emirates": "AE",
-  "uae": "AE",
+  uae: "AE",
   "saudi arabia": "SA",
-  "russia": "RU",
-  "ukraine": "UA",
-  "turkey": "TR",
-  "egypt": "EG",
+  russia: "RU",
+  ukraine: "UA",
+  turkey: "TR",
+  egypt: "EG",
 };
 
 /**
@@ -147,7 +147,7 @@ interface GoogleAddressValidationResponse {
  */
 export async function validateAddress(
   apiKey: string,
-  address: AddressInput
+  address: AddressInput,
 ): Promise<AddressValidationResult> {
   if (!apiKey) {
     return {
@@ -194,7 +194,7 @@ export async function validateAddress(
           },
           enableUspsCass: normalizeCountryCode(address.country) === "US",
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -286,7 +286,9 @@ export interface ApiKeyValidationResult {
 /**
  * Verifies that a Google Maps API key is valid for Address Validation API
  */
-async function verifyAddressValidationApi(apiKey: string): Promise<{ enabled: boolean; error?: string }> {
+async function verifyAddressValidationApi(
+  apiKey: string,
+): Promise<{ enabled: boolean; error?: string }> {
   try {
     const response = await fetch(
       `https://addressvalidation.googleapis.com/v1:validateAddress?key=${apiKey}`,
@@ -301,7 +303,7 @@ async function verifyAddressValidationApi(apiKey: string): Promise<{ enabled: bo
             addressLines: ["1600 Amphitheatre Pkwy", "Mountain View, CA 94043"],
           },
         }),
-      }
+      },
     );
 
     if (response.ok) {
@@ -312,10 +314,19 @@ async function verifyAddressValidationApi(apiKey: string): Promise<{ enabled: bo
     const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
 
     if (response.status === 403) {
-      if (errorMessage.includes("not enabled") || errorMessage.includes("API has not been used")) {
-        return { enabled: false, error: "Address Validation API is not enabled" };
+      if (
+        errorMessage.includes("not enabled") ||
+        errorMessage.includes("API has not been used")
+      ) {
+        return {
+          enabled: false,
+          error: "Address Validation API is not enabled",
+        };
       }
-      return { enabled: false, error: "API key not authorized for Address Validation API" };
+      return {
+        enabled: false,
+        error: "API key not authorized for Address Validation API",
+      };
     }
 
     if (response.status === 401) {
@@ -324,14 +335,19 @@ async function verifyAddressValidationApi(apiKey: string): Promise<{ enabled: bo
 
     return { enabled: false, error: errorMessage };
   } catch (err) {
-    return { enabled: false, error: err instanceof Error ? err.message : "Network error" };
+    return {
+      enabled: false,
+      error: err instanceof Error ? err.message : "Network error",
+    };
   }
 }
 
 /**
  * Verifies that a Google Maps API key is valid for Places API (Autocomplete)
  */
-async function verifyPlacesApi(apiKey: string): Promise<{ enabled: boolean; error?: string }> {
+async function verifyPlacesApi(
+  apiKey: string,
+): Promise<{ enabled: boolean; error?: string }> {
   try {
     // Use the Places API (New) autocomplete endpoint
     const response = await fetch(
@@ -351,7 +367,7 @@ async function verifyPlacesApi(apiKey: string): Promise<{ enabled: boolean; erro
             },
           },
         }),
-      }
+      },
     );
 
     if (response.ok) {
@@ -362,7 +378,10 @@ async function verifyPlacesApi(apiKey: string): Promise<{ enabled: boolean; erro
     const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
 
     if (response.status === 403) {
-      if (errorMessage.includes("not enabled") || errorMessage.includes("API has not been used")) {
+      if (
+        errorMessage.includes("not enabled") ||
+        errorMessage.includes("API has not been used")
+      ) {
         return { enabled: false, error: "Places API (New) is not enabled" };
       }
       return { enabled: false, error: "API key not authorized for Places API" };
@@ -374,7 +393,10 @@ async function verifyPlacesApi(apiKey: string): Promise<{ enabled: boolean; erro
 
     return { enabled: false, error: errorMessage };
   } catch (err) {
-    return { enabled: false, error: err instanceof Error ? err.message : "Network error" };
+    return {
+      enabled: false,
+      error: err instanceof Error ? err.message : "Network error",
+    };
   }
 }
 
@@ -389,7 +411,9 @@ export async function verifyGoogleMapsApiKey(apiKey: string): Promise<boolean> {
 /**
  * Verifies that a Google Maps API key is valid and returns detailed status for each API
  */
-export async function verifyGoogleMapsApiKeyDetailed(apiKey: string): Promise<ApiKeyValidationResult> {
+export async function verifyGoogleMapsApiKeyDetailed(
+  apiKey: string,
+): Promise<ApiKeyValidationResult> {
   if (!apiKey || apiKey.length < 30) {
     return {
       isValid: false,
@@ -417,7 +441,7 @@ export async function verifyGoogleMapsApiKeyDetailed(apiKey: string): Promise<Ap
 export async function validateAddresses(
   apiKey: string,
   addresses: AddressInput[],
-  onProgress?: (completed: number, total: number) => void
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<Map<number, AddressValidationResult>> {
   const results = new Map<number, AddressValidationResult>();
 

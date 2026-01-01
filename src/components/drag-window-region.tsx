@@ -74,7 +74,13 @@ function WindowButtons() {
               height="12"
               viewBox="0 0 12 12"
             >
-              <rect fill="currentColor" width="10" height="1" x="1" y="6"></rect>
+              <rect
+                fill="currentColor"
+                width="10"
+                height="1"
+                x="1"
+                y="6"
+              ></rect>
             </svg>
           </Button>
         </TooltipTrigger>

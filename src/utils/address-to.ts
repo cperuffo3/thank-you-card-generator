@@ -1,13 +1,22 @@
 import type { Recipient } from "@/types/recipient";
 
-type TitleCategory = "dr" | "mr" | "mrs" | "ms" | "miss" | "prof" | "rev" | "hon" | "none";
+type TitleCategory =
+  | "dr"
+  | "mr"
+  | "mrs"
+  | "ms"
+  | "miss"
+  | "prof"
+  | "rev"
+  | "hon"
+  | "none";
 
 const TITLE_CATEGORIES: Record<string, TitleCategory> = {
   "Dr.": "dr",
   "Mr.": "mr",
   "Mrs.": "mrs",
   "Ms.": "ms",
-  "Miss": "miss",
+  Miss: "miss",
   "Prof.": "prof",
   "Rev.": "rev",
   "Hon.": "hon",
@@ -78,7 +87,11 @@ export function generateAddressTo(recipient: Partial<Recipient>): string {
     lastName.toLowerCase() === partnerLast.toLowerCase();
 
   // Same title category and same last name - use plural title
-  if (primaryCategory === partnerCategory && sameLastName && primaryCategory !== "none") {
+  if (
+    primaryCategory === partnerCategory &&
+    sameLastName &&
+    primaryCategory !== "none"
+  ) {
     // "Drs. Michael and Emily Smith"
     const pluralTitle = getPluralTitle(primaryCategory);
     return `${pluralTitle} ${firstName} and ${partnerFirst} ${lastName}`;
@@ -108,12 +121,20 @@ export function generateAddressTo(recipient: Partial<Recipient>): string {
 
   // Different last names - full names for both
   const primaryFull = formatSinglePerson(title, firstName, lastName);
-  const partnerFull = formatSinglePerson(partnerTitle, partnerFirst, partnerLast);
+  const partnerFull = formatSinglePerson(
+    partnerTitle,
+    partnerFirst,
+    partnerLast,
+  );
 
   return `${primaryFull} and ${partnerFull}`;
 }
 
-function formatSinglePerson(title: string, firstName: string, lastName: string): string {
+function formatSinglePerson(
+  title: string,
+  firstName: string,
+  lastName: string,
+): string {
   const parts = [title, firstName, lastName].filter(Boolean);
   return parts.join(" ");
 }

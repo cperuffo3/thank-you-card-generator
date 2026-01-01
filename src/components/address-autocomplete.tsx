@@ -88,7 +88,7 @@ interface SuggestedAddress {
 
 // Parse Place Details response into address components
 function parseAddressComponents(
-  response: PlaceDetailsResponse
+  response: PlaceDetailsResponse,
 ): Partial<AddressData> {
   const result: Partial<AddressData> = {};
 
@@ -127,7 +127,7 @@ function parseAddressComponents(
 // Fetch autocomplete predictions using Places API (New)
 async function fetchAutocompletePredictions(
   apiKey: string,
-  input: string
+  input: string,
 ): Promise<PlacePrediction[]> {
   try {
     const response = await fetch(
@@ -142,7 +142,7 @@ async function fetchAutocompletePredictions(
           input,
           includedPrimaryTypes: ["street_address", "subpremise", "premise"],
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -171,7 +171,7 @@ async function fetchAutocompletePredictions(
 // Fetch place details using Places API (New)
 async function fetchPlaceDetails(
   apiKey: string,
-  placeId: string
+  placeId: string,
 ): Promise<Partial<AddressData> | null> {
   try {
     const response = await fetch(
@@ -183,7 +183,7 @@ async function fetchPlaceDetails(
           "X-Goog-Api-Key": apiKey,
           "X-Goog-FieldMask": "addressComponents,formattedAddress",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -203,7 +203,7 @@ async function fetchPlaceDetails(
 // This is used to find a corrected address for failed validations
 async function fetchTextSearchSuggestion(
   apiKey: string,
-  addressQuery: string
+  addressQuery: string,
 ): Promise<SuggestedAddress | null> {
   try {
     const response = await fetch(
@@ -213,13 +213,14 @@ async function fetchTextSearchSuggestion(
         headers: {
           "Content-Type": "application/json",
           "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask": "places.id,places.formattedAddress,places.addressComponents",
+          "X-Goog-FieldMask":
+            "places.id,places.formattedAddress,places.addressComponents",
         },
         body: JSON.stringify({
           textQuery: addressQuery,
           pageSize: 1,
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -270,10 +271,12 @@ export function AddressAutocomplete({
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestedAddress, setSuggestedAddress] = useState<SuggestedAddress | null>(null);
+  const [suggestedAddress, setSuggestedAddress] =
+    useState<SuggestedAddress | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   // Local validation state - overrides props when set
-  const [localValidation, setLocalValidation] = useState<AddressValidationStatus | null>(null);
+  const [localValidation, setLocalValidation] =
+    useState<AddressValidationStatus | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -281,13 +284,15 @@ export function AddressAutocomplete({
 
   // Use local validation if available, otherwise use props
   const isVerified = localValidation?.isVerified ?? initialIsVerified;
-  const formattedAddress = localValidation?.formattedAddress ?? initialFormattedAddress;
-  const validationError = localValidation?.validationError ?? initialValidationError;
+  const formattedAddress =
+    localValidation?.formattedAddress ?? initialFormattedAddress;
+  const validationError =
+    localValidation?.validationError ?? initialValidationError;
 
   // Check if we have an existing address
   const hasExistingAddress = useMemo(
     () => Boolean(value.address1 || value.city || value.state || value.zip),
-    [value.address1, value.city, value.state, value.zip]
+    [value.address1, value.city, value.state, value.zip],
   );
 
   // Format the current address for display
@@ -314,12 +319,15 @@ export function AddressAutocomplete({
 
       setIsLoading(true);
 
-      const results = await fetchAutocompletePredictions(googleMapsApiKey, input);
+      const results = await fetchAutocompletePredictions(
+        googleMapsApiKey,
+        input,
+      );
       setPredictions(results);
       setShowSuggestions(results.length > 0);
       setIsLoading(false);
     },
-    [googleMapsApiKey]
+    [googleMapsApiKey],
   );
 
   // Handle search input changes with debounce
@@ -338,7 +346,7 @@ export function AddressAutocomplete({
         fetchPredictions(newValue);
       }, 300);
     },
-    [fetchPredictions]
+    [fetchPredictions],
   );
 
   // Cleanup debounce on unmount
@@ -371,7 +379,10 @@ export function AddressAutocomplete({
     // Use an async IIFE to handle the async operation
     // The setState calls happen in callbacks after the async fetch completes
     (async () => {
-      const suggestion = await fetchTextSearchSuggestion(googleMapsApiKey, displayAddress);
+      const suggestion = await fetchTextSearchSuggestion(
+        googleMapsApiKey,
+        displayAddress,
+      );
       // Only set the suggestion if it's different from the current address
       if (suggestion && suggestion.formattedAddress !== displayAddress) {
         setSuggestedAddress(suggestion);
@@ -401,7 +412,10 @@ export function AddressAutocomplete({
       setIsLoading(true);
       setShowSuggestions(false);
 
-      const details = await fetchPlaceDetails(googleMapsApiKey, prediction.placeId);
+      const details = await fetchPlaceDetails(
+        googleMapsApiKey,
+        prediction.placeId,
+      );
 
       if (details) {
         const newAddress: AddressData = {
@@ -448,7 +462,7 @@ export function AddressAutocomplete({
         setIsLoading(false);
       }
     },
-    [googleMapsApiKey, onChange, value.address2, onValidationChange]
+    [googleMapsApiKey, onChange, value.address2, onValidationChange],
   );
 
   const startEditing = useCallback(() => {
@@ -502,7 +516,13 @@ export function AddressAutocomplete({
 
     // Notify parent of validation change
     onValidationChange?.(newValidationStatus);
-  }, [suggestedAddress, googleMapsApiKey, onChange, value.address2, onValidationChange]);
+  }, [
+    suggestedAddress,
+    googleMapsApiKey,
+    onChange,
+    value.address2,
+    onValidationChange,
+  ]);
 
   // Verified address display
   if (hasExistingAddress && isVerified && !isEditing) {
@@ -589,7 +609,9 @@ export function AddressAutocomplete({
                 Did you mean this address?
               </span>
             </div>
-            <p className="text-sm text-blue-700">{suggestedAddress.formattedAddress}</p>
+            <p className="text-sm text-blue-700">
+              {suggestedAddress.formattedAddress}
+            </p>
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -619,7 +641,10 @@ export function AddressAutocomplete({
 
   // Unverified/unknown or editing state - show autocomplete input
   return (
-    <div ref={containerRef} className={cn("relative flex flex-col gap-2", className)}>
+    <div
+      ref={containerRef}
+      className={cn("relative flex flex-col gap-2", className)}
+    >
       {/* Show current address if exists and not editing */}
       {hasExistingAddress && !isEditing && (
         <div
@@ -698,21 +723,25 @@ export function AddressAutocomplete({
       )}
 
       {/* Suggestion to use existing address */}
-      {isEditing && hasExistingAddress && searchInput && predictions.length === 0 && !isLoading && (
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-left hover:bg-gray-100"
-          onClick={cancelEditing}
-        >
-          <MapPin className="size-4 text-gray-500" />
-          <div className="flex flex-col">
-            <span className="text-xs font-medium text-gray-700">
-              Keep current address
-            </span>
-            <span className="text-xs text-gray-500">{displayAddress}</span>
-          </div>
-        </button>
-      )}
+      {isEditing &&
+        hasExistingAddress &&
+        searchInput &&
+        predictions.length === 0 &&
+        !isLoading && (
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-left hover:bg-gray-100"
+            onClick={cancelEditing}
+          >
+            <MapPin className="size-4 text-gray-500" />
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-gray-700">
+                Keep current address
+              </span>
+              <span className="text-xs text-gray-500">{displayAddress}</span>
+            </div>
+          </button>
+        )}
     </div>
   );
 }

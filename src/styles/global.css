@@ -105,7 +105,8 @@
 
 @theme inline {
   --font-sans: "Inter Variable", "Inter", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   /* Custom design tokens */
   --color-text-heading: var(--text-heading);

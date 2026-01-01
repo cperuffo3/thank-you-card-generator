@@ -58,7 +58,7 @@ function GoogleMapsConfigDialogContent({
   const [showApiKey, setShowApiKey] = useState(false);
   const [localApiKey, setLocalApiKey] = useState(initialApiKey);
   const [apiKeyStatus, setApiKeyStatus] = useState<ApiKeyStatus>(
-    initialApiKey ? "valid" : "idle"
+    initialApiKey ? "valid" : "idle",
   );
   const [validationResult, setValidationResult] =
     useState<ApiKeyValidationResult | null>(null);
@@ -188,7 +188,7 @@ function GoogleMapsConfigDialogContent({
                 (apiKeyStatus === "invalid" || apiKeyStatus === "partial") &&
                   "border-red-500",
                 apiKeyStatus === "idle" && "border-gray-200",
-                apiKeyStatus === "verifying" && "border-blue-500"
+                apiKeyStatus === "verifying" && "border-blue-500",
               )}
             />
             <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
@@ -284,7 +284,7 @@ function GoogleMapsConfigDialogContent({
                           "text-xs",
                           validationResult.addressValidationApi.enabled
                             ? "text-green-600"
-                            : "text-red-600"
+                            : "text-red-600",
                         )}
                       >
                         Address Validation API
@@ -312,7 +312,7 @@ function GoogleMapsConfigDialogContent({
                           "text-xs",
                           validationResult.placesApi.enabled
                             ? "text-green-600"
-                            : "text-red-600"
+                            : "text-red-600",
                         )}
                       >
                         Places API (New)
@@ -367,7 +367,9 @@ function GoogleMapsConfigDialogContent({
                   className="text-blue-500"
                   style={{ fontSize: "14px" }}
                 />
-                <span className="text-sm text-gray-600">Get your API key at </span>
+                <span className="text-sm text-gray-600">
+                  Get your API key at{" "}
+                </span>
                 <ExternalLink
                   href="https://console.cloud.google.com/apis/credentials"
                   className="text-sm font-semibold text-blue-500 no-underline hover:text-blue-600"
@@ -441,7 +443,8 @@ function GoogleMapsConfigDialogContent({
           <div className="border-t border-gray-200 pt-4">
             <p className="text-xs leading-5 text-gray-500">
               <strong>Pricing:</strong> Address Validation API costs $0.017 per
-              validation (first $200/month free). For 50 recipients, expect ~$0.85.
+              validation (first $200/month free). For 50 recipients, expect
+              ~$0.85.
             </p>
           </div>
         </div>

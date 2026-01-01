@@ -48,7 +48,13 @@ interface SettingsExportDialogProps {
   }) => void;
 }
 
-type Status = "idle" | "exporting" | "exported" | "importing" | "imported" | "error";
+type Status =
+  | "idle"
+  | "exporting"
+  | "exported"
+  | "importing"
+  | "imported"
+  | "error";
 
 interface SettingsExportDialogContentProps {
   openRouterApiKey: string;
@@ -78,13 +84,16 @@ function SettingsExportDialogContent({
       setMessage("");
 
       // Create card file data with settings only (no recipients)
-      const cardData = createCardFileData({
-        openRouterApiKey,
-        model,
-        googleMapsApiKey,
-        systemPrompt,
-        userPromptTemplate,
-      }, false); // false = don't include recipients
+      const cardData = createCardFileData(
+        {
+          openRouterApiKey,
+          model,
+          googleMapsApiKey,
+          systemPrompt,
+          userPromptTemplate,
+        },
+        false,
+      ); // false = don't include recipients
 
       const encryptedData = await encryptCardFile(cardData);
       const result = await saveCardFile(encryptedData, true); // Always show save dialog
@@ -137,8 +146,7 @@ function SettingsExportDialogContent({
     }
   };
 
-  const canExport =
-    openRouterApiKey.length > 0 || googleMapsApiKey.length > 0;
+  const canExport = openRouterApiKey.length > 0 || googleMapsApiKey.length > 0;
 
   return (
     <>

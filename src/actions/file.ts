@@ -27,13 +27,28 @@ export function parseCsvWithMapping(filePath: string, mapping: ColumnMapping) {
 }
 
 type ExportableField =
-  | "title" | "firstName" | "lastName"
-  | "partnerTitle" | "partnerFirst" | "partnerLast"
-  | "addressTo" | "address1" | "address2"
-  | "city" | "state" | "zip" | "country"
-  | "gift" | "giftValue" | "generatedMessage";
+  | "title"
+  | "firstName"
+  | "lastName"
+  | "partnerTitle"
+  | "partnerFirst"
+  | "partnerLast"
+  | "addressTo"
+  | "address1"
+  | "address2"
+  | "city"
+  | "state"
+  | "zip"
+  | "country"
+  | "gift"
+  | "giftValue"
+  | "generatedMessage";
 
-export function exportCsv(recipients: Recipient[], fields?: (keyof Recipient)[], filename?: string) {
+export function exportCsv(
+  recipients: Recipient[],
+  fields?: (keyof Recipient)[],
+  filename?: string,
+) {
   return ipc.client.file.exportCsv({
     recipients,
     fields: fields as ExportableField[] | undefined,
@@ -45,9 +60,13 @@ export function exportCsv(recipients: Recipient[], fields?: (keyof Recipient)[],
 export function saveCardFile(
   encryptedData: string,
   saveAs?: boolean,
-  currentFilePath?: string
+  currentFilePath?: string,
 ) {
-  return ipc.client.file.saveCardFile({ encryptedData, saveAs, currentFilePath });
+  return ipc.client.file.saveCardFile({
+    encryptedData,
+    saveAs,
+    currentFilePath,
+  });
 }
 
 export function loadCardFile() {

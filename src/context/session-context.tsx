@@ -7,7 +7,11 @@ import {
   type ReactNode,
 } from "react";
 import type { Session, Recipient } from "@/types/recipient";
-import { saveCardFile as saveCardFileAction, loadCardFile as loadCardFileAction, loadCardFileFromPath } from "@/actions/file";
+import {
+  saveCardFile as saveCardFileAction,
+  loadCardFile as loadCardFileAction,
+  loadCardFileFromPath,
+} from "@/actions/file";
 import type { OpenRouterModel } from "@/services/openrouter";
 import { getDefaultModels, fetchAvailableModels } from "@/services/openrouter";
 import {
@@ -46,9 +50,16 @@ interface SessionContextValue {
   updateRecipient: (id: string, updates: Partial<Recipient>) => void;
   currentRecipientId: string | null;
   setCurrentRecipientId: (id: string | null) => void;
-  saveCurrentSession: (saveAs?: boolean) => Promise<{ success: boolean; filePath?: string }>;
-  loadSessionFromFile: () => Promise<{ success: boolean; hasRecipients: boolean }>;
-  loadSessionFromPath: (filePath: string) => Promise<{ success: boolean; hasRecipients: boolean }>;
+  saveCurrentSession: (
+    saveAs?: boolean,
+  ) => Promise<{ success: boolean; filePath?: string }>;
+  loadSessionFromFile: () => Promise<{
+    success: boolean;
+    hasRecipients: boolean;
+  }>;
+  loadSessionFromPath: (
+    filePath: string,
+  ) => Promise<{ success: boolean; hasRecipients: boolean }>;
   clearSession: () => void;
   isDirty: boolean;
   cardFilePath: string | null;
@@ -130,7 +141,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
         );
       }
       return DEFAULT_USER_PROMPT_TEMPLATE;
-    }
+    },
   );
 
   // Persist API key to localStorage
@@ -253,7 +264,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
   );
 
   const saveCurrentSession = useCallback(
-    async (saveAs?: boolean): Promise<{ success: boolean; filePath?: string }> => {
+    async (
+      saveAs?: boolean,
+    ): Promise<{ success: boolean; filePath?: string }> => {
       if (!session) return { success: false };
 
       // Create the unified card file data
@@ -270,7 +283,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
       const result = await saveCardFileAction(
         encryptedData,
         saveAs,
-        cardFilePath || undefined
+        cardFilePath || undefined,
       );
 
       if (result.success && result.filePath) {
@@ -281,17 +294,29 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
       return { success: false };
     },
-    [session, apiKey, model, googleMapsApiKey, systemPrompt, userPromptTemplate, cardFilePath],
+    [
+      session,
+      apiKey,
+      model,
+      googleMapsApiKey,
+      systemPrompt,
+      userPromptTemplate,
+      cardFilePath,
+    ],
   );
 
-  const loadSessionFromFile = useCallback(async (): Promise<{ success: boolean; hasRecipients: boolean }> => {
+  const loadSessionFromFile = useCallback(async (): Promise<{
+    success: boolean;
+    hasRecipients: boolean;
+  }> => {
     const result = await loadCardFileAction();
 
     if (result.success && result.encryptedData) {
       try {
         const cardData = await decryptCardFile(result.encryptedData);
         const settings = extractSettings(cardData);
-        const hasRecipients = cardData.recipients && cardData.recipients.length > 0;
+        const hasRecipients =
+          cardData.recipients && cardData.recipients.length > 0;
 
         // Update settings
         setApiKey(settings.openRouterApiKey);
@@ -322,47 +347,65 @@ export function SessionProvider({ children }: SessionProviderProps) {
     }
 
     return { success: false, hasRecipients: false };
-  }, [setApiKey, setModel, setGoogleMapsApiKey, setSystemPrompt, setUserPromptTemplate]);
+  }, [
+    setApiKey,
+    setModel,
+    setGoogleMapsApiKey,
+    setSystemPrompt,
+    setUserPromptTemplate,
+  ]);
 
-  const loadSessionFromPath = useCallback(async (filePath: string): Promise<{ success: boolean; hasRecipients: boolean }> => {
-    const result = await loadCardFileFromPath(filePath);
+  const loadSessionFromPath = useCallback(
+    async (
+      filePath: string,
+    ): Promise<{ success: boolean; hasRecipients: boolean }> => {
+      const result = await loadCardFileFromPath(filePath);
 
-    if (result.success && result.encryptedData) {
-      try {
-        const cardData = await decryptCardFile(result.encryptedData);
-        const settings = extractSettings(cardData);
-        const hasRecipients = cardData.recipients && cardData.recipients.length > 0;
+      if (result.success && result.encryptedData) {
+        try {
+          const cardData = await decryptCardFile(result.encryptedData);
+          const settings = extractSettings(cardData);
+          const hasRecipients =
+            cardData.recipients && cardData.recipients.length > 0;
 
-        // Update settings
-        setApiKey(settings.openRouterApiKey);
-        setModel(settings.model);
-        setGoogleMapsApiKey(settings.googleMapsApiKey);
-        setSystemPrompt(settings.systemPrompt);
-        setUserPromptTemplate(settings.userPromptTemplate);
+          // Update settings
+          setApiKey(settings.openRouterApiKey);
+          setModel(settings.model);
+          setGoogleMapsApiKey(settings.googleMapsApiKey);
+          setSystemPrompt(settings.systemPrompt);
+          setUserPromptTemplate(settings.userPromptTemplate);
 
-        // Only update session if there are recipients
-        if (hasRecipients) {
-          const newSession: Session = {
-            openRouterApiKey: settings.openRouterApiKey,
-            model: settings.model,
-            recipients: cardData.recipients,
-            filePath: result.filePath,
-          };
-          setSessionState(newSession);
-          setCardFilePath(result.filePath || null);
-          setCurrentRecipientId(cardData.recipients[0].id);
+          // Only update session if there are recipients
+          if (hasRecipients) {
+            const newSession: Session = {
+              openRouterApiKey: settings.openRouterApiKey,
+              model: settings.model,
+              recipients: cardData.recipients,
+              filePath: result.filePath,
+            };
+            setSessionState(newSession);
+            setCardFilePath(result.filePath || null);
+            setCurrentRecipientId(cardData.recipients[0].id);
+          }
+          setIsDirty(false);
+
+          return { success: true, hasRecipients };
+        } catch (error) {
+          console.error("Failed to decrypt card file:", error);
+          return { success: false, hasRecipients: false };
         }
-        setIsDirty(false);
-
-        return { success: true, hasRecipients };
-      } catch (error) {
-        console.error("Failed to decrypt card file:", error);
-        return { success: false, hasRecipients: false };
       }
-    }
 
-    return { success: false, hasRecipients: false };
-  }, [setApiKey, setModel, setGoogleMapsApiKey, setSystemPrompt, setUserPromptTemplate]);
+      return { success: false, hasRecipients: false };
+    },
+    [
+      setApiKey,
+      setModel,
+      setGoogleMapsApiKey,
+      setSystemPrompt,
+      setUserPromptTemplate,
+    ],
+  );
 
   const clearSession = useCallback(() => {
     setSessionState(null);
