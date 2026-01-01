@@ -172,7 +172,7 @@ export function EditorContent({
     <main className="flex flex-1 flex-col overflow-hidden bg-gray-50">
       {/* Scrollable Content */}
       <div className="min-h-0 flex-1 overflow-auto px-28 py-8">
-        <div className="mx-auto max-w-4xl space-y-6">
+        <div className="mx-auto max-w-4xl space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">
@@ -464,7 +464,7 @@ export function EditorContent({
                 <Textarea
                   value={recipient.generatedMessage}
                   onChange={(e) => handleMessageChange(e.target.value)}
-                  className="min-h-48 resize-none border-0 bg-transparent p-0 text-sm leading-relaxed text-gray-700 focus-visible:ring-0"
+                  className="h-14 resize-none border-0 bg-transparent p-0 text-sm leading-relaxed text-gray-700 focus-visible:ring-0"
                 />
               </div>
 
