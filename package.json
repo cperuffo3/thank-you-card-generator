@@ -1,7 +1,7 @@
 {
   "name": "thank-you-card-generator",
   "productName": "Thank You Card Generator",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Generate personalized thank you messages for wedding guests",
   "main": ".vite/build/main.js",
   "private": true,
