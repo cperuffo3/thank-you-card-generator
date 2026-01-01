@@ -81,7 +81,9 @@ export function RecipientCard({ recipient }: RecipientCardProps) {
                 <div>
                   <p>{recipient.gift}</p>
                   {recipient.giftValue && (
-                    <p className="text-muted-foreground">${recipient.giftValue}</p>
+                    <p className="text-muted-foreground">
+                      ${recipient.giftValue}
+                    </p>
                   )}
                 </div>
               ) : (

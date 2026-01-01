@@ -10,13 +10,24 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    icon: "./images/icon", // No file extension - Forge adds .ico/.icns automatically
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel({
+      setupIcon: "./images/icon.ico",
+    }),
     new MakerZIP({}, ["darwin"]),
-    new MakerRpm({}),
-    new MakerDeb({}),
+    new MakerRpm({
+      options: {
+        icon: "./images/icon.png",
+      },
+    }),
+    new MakerDeb({
+      options: {
+        icon: "./images/icon.png",
+      },
+    }),
   ],
   publishers: [
     {
@@ -27,8 +38,8 @@ const config: ForgeConfig = {
       name: "@electron-forge/publisher-github",
       config: {
         repository: {
-          owner: "LuanRoger",
-          name: "electron-shadcn",
+          owner: "cperuffo3",
+          name: "wedding-thank-you-card-generator",
         },
         draft: true,
         prerelease: false,

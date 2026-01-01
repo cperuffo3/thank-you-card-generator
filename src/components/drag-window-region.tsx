@@ -1,5 +1,6 @@
 import { getPlatform } from "@/actions/app";
 import { closeWindow, maximizeWindow, minimizeWindow } from "@/actions/window";
+import { Button } from "@/components/ui/button";
 import { type ReactNode, useEffect, useState } from "react";
 
 interface DragWindowRegionProps {
@@ -53,10 +54,11 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
 function WindowButtons() {
   return (
     <div className="flex">
-      <button
+      <Button
         title="Minimize"
         type="button"
-        className="p-2 hover:bg-slate-300"
+        variant="windowControl"
+        className="hover:bg-slate-300"
         onClick={minimizeWindow}
       >
         <svg
@@ -68,11 +70,12 @@ function WindowButtons() {
         >
           <rect fill="currentColor" width="10" height="1" x="1" y="6"></rect>
         </svg>
-      </button>
-      <button
+      </Button>
+      <Button
         title="Maximize"
         type="button"
-        className="p-2 hover:bg-slate-300"
+        variant="windowControl"
+        className="hover:bg-slate-300"
         onClick={maximizeWindow}
       >
         <svg
@@ -91,11 +94,12 @@ function WindowButtons() {
             stroke="currentColor"
           ></rect>
         </svg>
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
         title="Close"
-        className="p-2 hover:bg-red-300"
+        variant="windowControl"
+        className="hover:bg-red-300"
         onClick={closeWindow}
       >
         <svg
@@ -111,7 +115,7 @@ function WindowButtons() {
             points="11 1.576 6.583 6 11 10.424 10.424 11 6 6.583 1.576 11 1 10.424 5.417 6 1 1.576 1.576 1 6 5.417 10.424 1"
           ></polygon>
         </svg>
-      </button>
+      </Button>
     </div>
   );
 }

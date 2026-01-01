@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils/tailwind";
 import type { Recipient } from "@/types/recipient";
@@ -43,27 +44,28 @@ export function RecipientSidebar({
       <div className="border-b p-3">
         <h2 className="text-sm font-semibold">Recipients</h2>
         <p className="text-muted-foreground text-xs">
-          {recipients.filter((r) => r.isApproved).length} of {recipients.length} approved
+          {recipients.filter((r) => r.isApproved).length} of {recipients.length}{" "}
+          approved
         </p>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2">
           {recipients.map((recipient) => (
-            <button
+            <Button
               key={recipient.id}
+              variant="sidebarItem"
               onClick={() => onSelect(recipient.id)}
               className={cn(
-                "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors",
                 selectedId === recipient.id
                   ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               {getStatusIcon(recipient)}
               <span className="flex-1 truncate">
                 {getRecipientDisplayName(recipient)}
               </span>
-            </button>
+            </Button>
           ))}
         </div>
       </ScrollArea>

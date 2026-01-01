@@ -23,7 +23,9 @@ function EditorPage() {
   const { session: sessionParam } = Route.useSearch();
 
   const [session, setSession] = useState<Session | null>(null);
-  const [currentRecipientId, setCurrentRecipientId] = useState<string | null>(null);
+  const [currentRecipientId, setCurrentRecipientId] = useState<string | null>(
+    null,
+  );
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,30 +48,34 @@ function EditorPage() {
   }, [sessionParam]);
 
   const currentRecipient = session?.recipients.find(
-    (r) => r.id === currentRecipientId
+    (r) => r.id === currentRecipientId,
   );
 
-  const currentIndex = session?.recipients.findIndex(
-    (r) => r.id === currentRecipientId
-  ) ?? -1;
+  const currentIndex =
+    session?.recipients.findIndex((r) => r.id === currentRecipientId) ?? -1;
 
-  const approvedCount = session?.recipients.filter((r) => r.isApproved).length ?? 0;
+  const approvedCount =
+    session?.recipients.filter((r) => r.isApproved).length ?? 0;
   const totalCount = session?.recipients.length ?? 0;
-  const progressPercent = totalCount > 0 ? (approvedCount / totalCount) * 100 : 0;
+  const progressPercent =
+    totalCount > 0 ? (approvedCount / totalCount) * 100 : 0;
 
-  const updateRecipient = useCallback((updates: Partial<Recipient>) => {
-    if (!session || !currentRecipientId) return;
+  const updateRecipient = useCallback(
+    (updates: Partial<Recipient>) => {
+      if (!session || !currentRecipientId) return;
 
-    setSession((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        recipients: prev.recipients.map((r) =>
-          r.id === currentRecipientId ? { ...r, ...updates } : r
-        ),
-      };
-    });
-  }, [session, currentRecipientId]);
+      setSession((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          recipients: prev.recipients.map((r) =>
+            r.id === currentRecipientId ? { ...r, ...updates } : r,
+          ),
+        };
+      });
+    },
+    [session, currentRecipientId],
+  );
 
   const handleGenerate = async () => {
     if (!session || !currentRecipient) return;
@@ -89,14 +95,17 @@ function EditorPage() {
         lastModified: new Date().toISOString(),
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate message");
+      setError(
+        err instanceof Error ? err.message : "Failed to generate message",
+      );
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleRegenerate = async (modificationRequest: string) => {
-    if (!session || !currentRecipient || !currentRecipient.generatedMessage) return;
+    if (!session || !currentRecipient || !currentRecipient.generatedMessage)
+      return;
 
     setIsGenerating(true);
     setError(null);
@@ -115,7 +124,9 @@ function EditorPage() {
         lastModified: new Date().toISOString(),
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to regenerate message");
+      setError(
+        err instanceof Error ? err.message : "Failed to regenerate message",
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -130,7 +141,9 @@ function EditorPage() {
     try {
       const result = await saveSession(session, saveAs);
       if (result?.filePath) {
-        setSession((prev) => (prev ? { ...prev, filePath: result.filePath } : prev));
+        setSession((prev) =>
+          prev ? { ...prev, filePath: result.filePath } : prev,
+        );
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save session");
@@ -210,7 +223,9 @@ function EditorPage() {
             </div>
           ) : (
             <div className="flex flex-1 items-center justify-center">
-              <p className="text-muted-foreground">Select a recipient from the sidebar</p>
+              <p className="text-muted-foreground">
+                Select a recipient from the sidebar
+              </p>
             </div>
           )}
         </div>
@@ -218,7 +233,11 @@ function EditorPage() {
 
       <div className="flex items-center justify-between border-t px-4 py-3">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/" })}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate({ to: "/" })}
+          >
             <Home className="mr-2 size-4" />
             Home
           </Button>
@@ -255,7 +274,11 @@ function EditorPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSave(false)} disabled={isSaving}>
+            <Button
+              variant="outline"
+              onClick={() => handleSave(false)}
+              disabled={isSaving}
+            >
               <Save className="mr-2 size-4" />
               Save
             </Button>

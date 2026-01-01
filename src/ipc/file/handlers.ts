@@ -7,9 +7,37 @@ import {
   saveSessionInputSchema,
   exportCsvInputSchema,
   sessionSchema,
+  parseCsvWithMappingInputSchema,
 } from "./schemas";
 import type { Recipient, Session } from "@/types/recipient";
 
+// Parse name that may have "UNMATCHED:" prefix and split into first/last name
+function parseNameField(value: string): {
+  firstName: string;
+  lastName: string;
+} {
+  if (!value) return { firstName: "", lastName: "" };
+
+  // Remove "UNMATCHED:" prefix (case-insensitive)
+  const name = value.replace(/^UNMATCHED:\s*/i, "").trim();
+
+  if (!name) return { firstName: "", lastName: "" };
+
+  // Split into parts
+  const parts = name.split(/\s+/);
+
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: "" };
+  }
+
+  // Last part is last name, everything else is first name
+  const lastName = parts.pop() || "";
+  const firstName = parts.join(" ");
+
+  return { firstName, lastName };
+}
+
+// Open CSV and return raw data with headers for column mapping
 export const openCsv = os.handler(async () => {
   const result = await dialog.showOpenDialog({
     title: "Select CSV File",
@@ -24,39 +52,103 @@ export const openCsv = os.handler(async () => {
   const filePath = result.filePaths[0];
   const content = await readFile(filePath, "utf-8");
 
-  const records = parseCsv(content, {
-    columns: true,
-    skip_empty_lines: true,
-    trim: true,
-  }) as Record<string, string>[];
+  try {
+    const records = parseCsv(content, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }) as Record<string, string>[];
 
-  const recipients: Recipient[] = records.map((row) => ({
-    id: crypto.randomUUID(),
-    title: row["Title"] || row["title"] || "",
-    firstName: row["First Name"] || row["firstName"] || row["first_name"] || "",
-    lastName: row["Last Name"] || row["lastName"] || row["last_name"] || "",
-    partnerTitle: row["Partner Title"] || row["partnerTitle"] || "",
-    partnerFirst:
-      row["Partner First"] || row["partnerFirst"] || row["partner_first"] || "",
-    partnerLast:
-      row["Partner Last"] || row["partnerLast"] || row["partner_last"] || "",
-    company: row["Company"] || row["company"] || "",
-    address1: row["Address 1"] || row["address1"] || row["address"] || "",
-    address2: row["Address 2"] || row["address2"] || "",
-    city: row["City"] || row["city"] || "",
-    state: row["State"] || row["state"] || "",
-    zip: row["Zip"] || row["zip"] || row["ZIP"] || row["postal_code"] || "",
-    country: row["Country"] || row["country"] || "",
-    gift: row["Gift"] || row["gift"] || "",
-    giftValue: row["Gift Value"] || row["giftValue"] || row["gift_value"] || "",
-    customPrompt: "",
-    generatedMessage: "",
-    isApproved: false,
-    lastModified: new Date().toISOString(),
-  }));
+    // Get column headers from first record
+    const headers = records.length > 0 ? Object.keys(records[0]) : [];
 
-  return { success: true as const, recipients, filePath };
+    // Return raw data for column mapping UI
+    return {
+      success: true as const,
+      filePath,
+      fileName: filePath.split(/[\\/]/).pop() || "file.csv",
+      headers,
+      rowCount: records.length,
+      previewRows: records.slice(0, 5), // First 5 rows for preview
+      rawRecords: records, // Full data for parsing
+    };
+  } catch (error) {
+    return {
+      success: false as const,
+      error:
+        error instanceof Error ? error.message : "Failed to parse CSV file",
+    };
+  }
 });
+
+// Parse CSV with user-provided column mapping
+export const parseCsvWithMapping = os
+  .input(parseCsvWithMappingInputSchema)
+  .handler(async ({ input }) => {
+    const { filePath, mapping } = input;
+    const content = await readFile(filePath, "utf-8");
+
+    try {
+      const records = parseCsv(content, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      }) as Record<string, string>[];
+
+      const recipients: Recipient[] = records.map((row) => {
+        // Get raw first and last name values
+        let firstName = row[mapping.firstName] || "";
+        let lastName = row[mapping.lastName] || "";
+
+        // Check if firstName contains "UNMATCHED:" prefix (combined name field)
+        if (firstName.toUpperCase().startsWith("UNMATCHED:")) {
+          const parsed = parseNameField(firstName);
+          firstName = parsed.firstName;
+          // Only override lastName if it wasn't explicitly mapped or is empty
+          if (!lastName) {
+            lastName = parsed.lastName;
+          }
+        }
+
+        return {
+          id: crypto.randomUUID(),
+          title: row[mapping.title] || "",
+          firstName,
+          lastName,
+          partnerTitle: mapping.partnerTitle
+            ? row[mapping.partnerTitle] || ""
+            : "",
+          partnerFirst: mapping.partnerFirst
+            ? row[mapping.partnerFirst] || ""
+            : "",
+          partnerLast: mapping.partnerLast
+            ? row[mapping.partnerLast] || ""
+            : "",
+          company: mapping.company ? row[mapping.company] || "" : "",
+          address1: mapping.address1 ? row[mapping.address1] || "" : "",
+          address2: mapping.address2 ? row[mapping.address2] || "" : "",
+          city: mapping.city ? row[mapping.city] || "" : "",
+          state: mapping.state ? row[mapping.state] || "" : "",
+          zip: mapping.zip ? row[mapping.zip] || "" : "",
+          country: mapping.country ? row[mapping.country] || "" : "",
+          gift: row[mapping.gift] || "",
+          giftValue: mapping.giftValue ? row[mapping.giftValue] || "" : "",
+          customPrompt: "",
+          generatedMessage: "",
+          isApproved: false,
+          lastModified: new Date().toISOString(),
+        };
+      });
+
+      return { success: true as const, recipients };
+    } catch (error) {
+      return {
+        success: false as const,
+        error:
+          error instanceof Error ? error.message : "Failed to parse CSV file",
+      };
+    }
+  });
 
 export const saveSession = os
   .input(saveSessionInputSchema)

@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,18 +24,30 @@ import {
   type OpenRouterModel,
 } from "@/services/openrouter";
 import type { Recipient, Session } from "@/types/recipient";
-import { Key, ArrowRight, ArrowLeft, Loader2, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
+import {
+  Key,
+  ArrowRight,
+  ArrowLeft,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  ExternalLink,
+} from "lucide-react";
 
 function ConfigurePage() {
   const navigate = useNavigate();
   const { recipients: recipientsParam } = Route.useSearch();
 
   const [apiKey, setApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("anthropic/claude-sonnet-4");
+  const [selectedModel, setSelectedModel] = useState(
+    "anthropic/claude-sonnet-4",
+  );
   const [models] = useState<OpenRouterModel[]>(getDefaultModels());
   const [showApiKey, setShowApiKey] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   // Parse recipients from URL params
@@ -98,7 +116,8 @@ function ConfigurePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Configure API</h1>
         <p className="text-muted-foreground mt-1">
-          Set up your OpenRouter API key and select a model for generating messages
+          Set up your OpenRouter API key and select a model for generating
+          messages
         </p>
       </div>
 
@@ -198,8 +217,8 @@ function ConfigurePage() {
                 </SelectContent>
               </Select>
               <p className="text-muted-foreground text-xs">
-                Different models have varying capabilities and costs.
-                Claude Sonnet 4 is recommended for quality results.
+                Different models have varying capabilities and costs. Claude
+                Sonnet 4 is recommended for quality results.
               </p>
             </div>
           </CardContent>

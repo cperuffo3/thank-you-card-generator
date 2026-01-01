@@ -1,5 +1,5 @@
-import { OpenRouter } from '@openrouter/sdk';
-import type { Recipient } from '@/types/recipient';
+import { OpenRouter } from "@openrouter/sdk";
+import type { Recipient } from "@/types/recipient";
 
 const SYSTEM_PROMPT = `You are an expert at writing heartfelt, personalized wedding thank you card messages.
 
@@ -12,16 +12,27 @@ Guidelines:
 - Avoid generic phrases like "it means so much" - be specific and genuine`;
 
 const DEFAULT_MODELS = [
-  { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4' },
-  { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o' },
-  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
-  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash' },
+  { id: "google/gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
+  { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+  { id: "anthropic/claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
+  { id: "openai/gpt-5.2", name: "GPT-5.2" },
+  { id: "anthropic/claude-sonnet-4", name: "Claude Sonnet 4" },
+  { id: "anthropic/claude-3.5-haiku", name: "Claude 3.5 Haiku" },
+  { id: "openai/gpt-4o", name: "GPT-4o" },
+  { id: "openai/gpt-4o-mini", name: "GPT-4o Mini" },
+  { id: "google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash" },
 ];
+
+export interface OpenRouterModelPricing {
+  prompt: string; // Cost per token for prompts (as string from API)
+  completion: string; // Cost per token for completions (as string from API)
+}
 
 export interface OpenRouterModel {
   id: string;
   name: string;
+  pricing?: OpenRouterModelPricing;
+  contextLength?: number | null;
 }
 
 export interface GenerateMessageOptions {
@@ -41,8 +52,8 @@ export interface RegenerateMessageOptions {
 function createClient(apiKey: string): OpenRouter {
   return new OpenRouter({
     apiKey,
-    httpReferer: 'https://github.com/wedding-thank-you-card-generator',
-    xTitle: 'Wedding Thank You Card Generator',
+    httpReferer: "https://github.com/wedding-thank-you-card-generator",
+    xTitle: "Wedding Thank You Card Generator",
   });
 }
 
@@ -52,14 +63,14 @@ function buildRecipientContext(recipient: Recipient): string {
   // Build name string
   const primaryName = [recipient.title, recipient.firstName, recipient.lastName]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
   const partnerName = [
     recipient.partnerTitle,
     recipient.partnerFirst,
     recipient.partnerLast,
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   if (primaryName && partnerName) {
     parts.push(`Recipients: ${primaryName} and ${partnerName}`);
@@ -79,11 +90,11 @@ function buildRecipientContext(recipient: Recipient): string {
     parts.push(`Gift Value: ${recipient.giftValue}`);
   }
 
-  return parts.join('\n');
+  return parts.join("\n");
 }
 
 export async function generateMessage(
-  options: GenerateMessageOptions
+  options: GenerateMessageOptions,
 ): Promise<string> {
   const { apiKey, model, recipient } = options;
   const client = createClient(apiKey);
@@ -96,9 +107,9 @@ export async function generateMessage(
   const result = client.callModel({
     model,
     input: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: "system", content: SYSTEM_PROMPT },
       {
-        role: 'user',
+        role: "user",
         content: `Write a thank you message for this wedding gift:\n\n${userPrompt}`,
       },
     ],
@@ -109,7 +120,7 @@ export async function generateMessage(
 }
 
 export async function regenerateMessage(
-  options: RegenerateMessageOptions
+  options: RegenerateMessageOptions,
 ): Promise<string> {
   const { apiKey, model, previousMessage, modificationRequest, recipient } =
     options;
@@ -120,14 +131,14 @@ export async function regenerateMessage(
   const result = client.callModel({
     model,
     input: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: "system", content: SYSTEM_PROMPT },
       {
-        role: 'user',
+        role: "user",
         content: `Write a thank you message for this wedding gift:\n\n${recipientContext}`,
       },
-      { role: 'assistant', content: previousMessage },
+      { role: "assistant", content: previousMessage },
       {
-        role: 'user',
+        role: "user",
         content: `Please modify the message with these changes: ${modificationRequest}`,
       },
     ],
@@ -138,41 +149,44 @@ export async function regenerateMessage(
 }
 
 export async function fetchAvailableModels(
-  apiKey: string
+  apiKey: string,
 ): Promise<OpenRouterModel[]> {
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/models', {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
+    // Use the OpenRouter SDK to fetch models
+    const client = new OpenRouter({
+      apiKey,
     });
 
-    if (!response.ok) {
-      console.warn('Failed to fetch models, using defaults');
+    const result = await client.models.list();
+
+    if (!result.data || result.data.length === 0) {
+      console.warn("No models returned from API, using defaults");
       return DEFAULT_MODELS;
     }
 
-    const data = (await response.json()) as {
-      data: Array<{ id: string; name: string }>;
-    };
-
-    // Filter to popular/recommended models and sort by name
-    const popularPrefixes = [
-      'anthropic/',
-      'openai/',
-      'google/',
-      'meta-llama/',
-      'mistralai/',
-    ];
-
-    const models = data.data
-      .filter((m) => popularPrefixes.some((prefix) => m.id.startsWith(prefix)))
-      .map((m) => ({ id: m.id, name: m.name }))
+    // Return all models with pricing info, sorted by name
+    const models = result.data
+      .filter((m) => {
+        // Filter out models that don't support text output
+        const outputModalities = m.architecture?.outputModalities || [];
+        return outputModalities.includes("text");
+      })
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        pricing: m.pricing
+          ? {
+              prompt: m.pricing.prompt,
+              completion: m.pricing.completion,
+            }
+          : undefined,
+        contextLength: m.contextLength,
+      }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     return models.length > 0 ? models : DEFAULT_MODELS;
   } catch (error) {
-    console.warn('Error fetching models:', error);
+    console.warn("Error fetching models:", error);
     return DEFAULT_MODELS;
   }
 }
@@ -185,12 +199,12 @@ export async function testConnection(apiKey: string): Promise<boolean> {
   try {
     const client = createClient(apiKey);
     const result = client.callModel({
-      model: 'openai/gpt-4o-mini',
+      model: "openai/gpt-4o-mini",
       input: 'Say "OK" and nothing else.',
     });
 
     const text = await result.getText();
-    return text.toLowerCase().includes('ok');
+    return text.toLowerCase().includes("ok");
   } catch {
     return false;
   }

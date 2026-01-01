@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ImportPreviewRouteImport } from './routes/import-preview'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as ConfigureRouteImport } from './routes/configure'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ImportPreviewRoute = ImportPreviewRouteImport.update({
+  id: '/import-preview',
+  path: '/import-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ImportRoute = ImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/configure': typeof ConfigureRoute
   '/editor': typeof EditorRoute
   '/import': typeof ImportRoute
+  '/import-preview': typeof ImportPreviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configure': typeof ConfigureRoute
   '/editor': typeof EditorRoute
   '/import': typeof ImportRoute
+  '/import-preview': typeof ImportPreviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/configure': typeof ConfigureRoute
   '/editor': typeof EditorRoute
   '/import': typeof ImportRoute
+  '/import-preview': typeof ImportPreviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/configure' | '/editor' | '/import'
+  fullPaths: '/' | '/configure' | '/editor' | '/import' | '/import-preview'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/configure' | '/editor' | '/import'
-  id: '__root__' | '/' | '/configure' | '/editor' | '/import'
+  to: '/' | '/configure' | '/editor' | '/import' | '/import-preview'
+  id:
+    | '__root__'
+    | '/'
+    | '/configure'
+    | '/editor'
+    | '/import'
+    | '/import-preview'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +82,18 @@ export interface RootRouteChildren {
   ConfigureRoute: typeof ConfigureRoute
   EditorRoute: typeof EditorRoute
   ImportRoute: typeof ImportRoute
+  ImportPreviewRoute: typeof ImportPreviewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/import-preview': {
+      id: '/import-preview'
+      path: '/import-preview'
+      fullPath: '/import-preview'
+      preLoaderRoute: typeof ImportPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/import': {
       id: '/import'
       path: '/import'
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfigureRoute: ConfigureRoute,
   EditorRoute: EditorRoute,
   ImportRoute: ImportRoute,
+  ImportPreviewRoute: ImportPreviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -65,8 +65,6 @@
       "Bash(git clean:*)",
       "Bash(git rm:*)"
     ],
-    "ask": [
-      "Bash(rm:*)"
-    ]
+    "ask": ["Bash(rm:*)"]
   }
 }

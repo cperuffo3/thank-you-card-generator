@@ -8,7 +8,12 @@
 
 :root {
   /* Welcome page gradients */
-  --gradient-page: linear-gradient(136deg, #faf5ff 0%, #eff6ff 50%, #fdf2f8 100%);
+  --gradient-page: linear-gradient(
+    136deg,
+    #faf5ff 0%,
+    #eff6ff 50%,
+    #fdf2f8 100%
+  );
   --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
 
@@ -23,8 +28,10 @@
   --divider-color: #d1d5db;
 
   /* Welcome page shadows */
-  --shadow-card: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-icon: 0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-card:
+    0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-icon:
+    0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -2px rgba(0, 0, 0, 0.1);
   --shadow-hero: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
 
   --background: oklch(1 0 0);
