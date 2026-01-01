@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import BaseLayout from "@/layouts/base-layout";
 import { Outlet, createRootRoute, useNavigate } from "@tanstack/react-router";
 import { useSession } from "@/context/session-context";
@@ -52,10 +52,46 @@ function FileOpenHandler() {
   return null;
 }
 
+// Component to handle close confirmation (save before close)
+function CloseConfirmationHandler() {
+  const { saveCurrentSession } = useSession();
+  const saveCurrentSessionRef = useRef(saveCurrentSession);
+
+  // Keep ref in sync with current value
+  useEffect(() => {
+    saveCurrentSessionRef.current = saveCurrentSession;
+  }, [saveCurrentSession]);
+
+  useEffect(() => {
+    const electronAPI = window.electronAPI;
+    if (!electronAPI) return;
+
+    // Handle save request before close
+    electronAPI.onCloseConfirmed(async (action) => {
+      if (action === "save") {
+        const result = await saveCurrentSessionRef.current();
+        if (result.success) {
+          // Trigger another close attempt
+          window.close();
+        } else {
+          toast.error("Failed to save. Close cancelled.");
+        }
+      }
+    });
+
+    return () => {
+      electronAPI.removeCloseListeners();
+    };
+  }, []);
+
+  return null;
+}
+
 function Root() {
   return (
     <BaseLayout>
       <FileOpenHandler />
+      <CloseConfirmationHandler />
       <Outlet />
       {/* Uncomment the following line to enable the router devtools */}
       {/* <TanStackRouterDevtools /> */}

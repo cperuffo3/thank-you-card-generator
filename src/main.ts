@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, dialog } from "electron";
 import path from "path";
 import {
   installExtension,
@@ -22,6 +22,9 @@ if (process.platform === "win32") {
   }
 }
 
+// Track if we're force closing (user chose to discard or already saved)
+let isForceClosing = false;
+
 function createWindow() {
   const preload = path.join(__dirname, "preload.js");
   const mainWindow = new BrowserWindow({
@@ -41,6 +44,37 @@ function createWindow() {
       process.platform === "darwin" ? { x: 5, y: 5 } : undefined,
   });
   ipcContext.setMainWindow(mainWindow);
+
+  // Handle close event - always show save reminder
+  mainWindow.on("close", async (e) => {
+    if (isForceClosing) {
+      isForceClosing = false;
+      return; // Allow close
+    }
+
+    // Prevent default close and show confirmation dialog
+    e.preventDefault();
+
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: "question",
+      buttons: ["Save", "Don't Save", "Cancel"],
+      defaultId: 0,
+      cancelId: 2,
+      title: "Save Your Work?",
+      message: "Do you want to save before closing?",
+      detail: "Your work will be lost if you don't save.",
+    });
+
+    if (response === 0) {
+      // Save - tell renderer to save, then close
+      mainWindow.webContents.send(IPC_CHANNELS.CLOSE_CONFIRMED, "save");
+    } else if (response === 1) {
+      // Don't Save - close without saving
+      isForceClosing = true;
+      mainWindow.close();
+    }
+    // Cancel (response === 2) - do nothing, keep window open
+  });
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);

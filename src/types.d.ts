@@ -8,6 +8,9 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 interface ElectronAPI {
   onOpenCardFile: (callback: (filePath: string) => void) => void;
   removeOpenCardFileListener: () => void;
+  // Close confirmation handler
+  onCloseConfirmed: (callback: (action: "save") => void) => void;
+  removeCloseListeners: () => void;
 }
 
 interface Window {

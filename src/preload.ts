@@ -19,4 +19,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
   removeOpenCardFileListener: () => {
     ipcRenderer.removeAllListeners("open-card-file");
   },
+  // Close confirmation handler
+  onCloseConfirmed: (callback: (action: "save") => void) => {
+    ipcRenderer.on(IPC_CHANNELS.CLOSE_CONFIRMED, (_event, action: "save") => {
+      callback(action);
+    });
+  },
+  removeCloseListeners: () => {
+    ipcRenderer.removeAllListeners(IPC_CHANNELS.CLOSE_CONFIRMED);
+  },
 });
