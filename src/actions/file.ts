@@ -10,7 +10,6 @@ export interface ColumnMapping {
   partnerTitle?: string;
   partnerFirst?: string;
   partnerLast?: string;
-  company?: string;
   address1?: string;
   address2?: string;
   city?: string;
@@ -35,6 +34,6 @@ export function loadSession() {
   return ipc.client.file.loadSession();
 }
 
-export function exportCsv(recipients: Recipient[]) {
-  return ipc.client.file.exportCsv({ recipients });
+export function exportCsv(recipients: Recipient[], fields?: (keyof Recipient)[]) {
+  return ipc.client.file.exportCsv({ recipients, fields: fields as string[] });
 }

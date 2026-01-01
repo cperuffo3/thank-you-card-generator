@@ -18,7 +18,12 @@ function formatAddress(recipient: Recipient): string {
   return parts.join("\n");
 }
 
-function formatNames(recipient: Recipient): string {
+function getDisplayName(recipient: Recipient): string {
+  // Use addressTo if available, otherwise fall back to basic name formatting
+  if (recipient.addressTo) {
+    return recipient.addressTo;
+  }
+
   const primaryName = [recipient.title, recipient.firstName, recipient.lastName]
     .filter(Boolean)
     .join(" ");
@@ -38,22 +43,19 @@ function formatNames(recipient: Recipient): string {
 
 export function RecipientCard({ recipient }: RecipientCardProps) {
   const address = formatAddress(recipient);
-  const names = formatNames(recipient);
+  const displayName = getDisplayName(recipient);
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-base">{names}</CardTitle>
+          <CardTitle className="text-base">{displayName}</CardTitle>
           {recipient.isApproved && (
             <Badge variant="default" className="bg-green-600">
               Approved
             </Badge>
           )}
         </div>
-        {recipient.company && (
-          <p className="text-muted-foreground text-sm">{recipient.company}</p>
-        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">

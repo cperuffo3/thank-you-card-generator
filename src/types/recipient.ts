@@ -6,7 +6,9 @@ export interface Recipient {
   partnerTitle: string;
   partnerFirst: string;
   partnerLast: string;
-  company: string;
+  // Formal address line (e.g., "Drs. Michael and Emily Smith")
+  addressTo: string;
+  addressToOverridden: boolean; // If true, addressTo won't be recalculated when names change
   address1: string;
   address2: string;
   city: string;
@@ -19,6 +21,10 @@ export interface Recipient {
   generatedMessage: string;
   isApproved: boolean;
   lastModified: string;
+  // Address validation
+  addressValidated?: boolean; // true = valid, false = invalid, undefined = not validated
+  addressValidationError?: string;
+  formattedAddress?: string; // The corrected address from Google
 }
 
 export interface Session {

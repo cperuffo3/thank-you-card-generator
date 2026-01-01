@@ -11,9 +11,11 @@ import {
   faFileCsv,
 } from "@fortawesome/free-solid-svg-icons";
 import { loadSession } from "@/actions/file";
+import { useSession } from "@/context/session-context";
 
 function WelcomePage() {
   const navigate = useNavigate();
+  const { setApiKey, setModel } = useSession();
 
   const handleImportGiftList = () => {
     navigate({
@@ -31,11 +33,39 @@ function WelcomePage() {
   const handleContinueSession = async () => {
     try {
       const result = await loadSession();
-      if (result) {
-        navigate({
-          to: "/editor",
-          search: { session: JSON.stringify(result) },
-        });
+      if (result.success && result.session) {
+        // Restore API config from saved session to context
+        if (result.session.openRouterApiKey) {
+          setApiKey(result.session.openRouterApiKey);
+        }
+        if (result.session.model) {
+          setModel(result.session.model);
+        }
+
+        // Check if any recipient has a complete address that needs validation
+        // Only go to validation page if there are pending addresses to validate
+        const hasPendingAddressValidation = result.session.recipients.some(
+          (r) =>
+            r.address1 &&
+            r.city &&
+            r.state &&
+            r.zip &&
+            r.addressValidated === undefined
+        );
+
+        if (hasPendingAddressValidation) {
+          // Navigate to address validation page
+          navigate({
+            to: "/validate-addresses",
+            search: { recipients: JSON.stringify(result.session.recipients) },
+          });
+        } else {
+          // No pending addresses to validate, go directly to editor
+          navigate({
+            to: "/editor",
+            search: { recipients: JSON.stringify(result.session.recipients) },
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to load session:", error);
@@ -89,7 +119,7 @@ function WelcomePage() {
               className="group hover:border-indigo-300"
               style={{ boxShadow: "var(--shadow-card)" }}
             >
-              <div className="flex items-center gap-5">
+              <div className="flex w-full items-start gap-5">
                 <div
                   className="flex size-16 shrink-0 items-center justify-center rounded-xl"
                   style={{
@@ -103,7 +133,7 @@ function WelcomePage() {
                     style={{ fontSize: "24px" }}
                   />
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <h3 className="text-text-heading text-xl font-bold">
                     Import Gift List
                   </h3>
@@ -132,7 +162,7 @@ function WelcomePage() {
               className="group hover:border-pink-300"
               style={{ boxShadow: "var(--shadow-card)" }}
             >
-              <div className="flex items-center gap-5">
+              <div className="flex w-full items-start gap-5">
                 <div
                   className="flex size-16 shrink-0 items-center justify-center rounded-xl"
                   style={{
@@ -146,7 +176,7 @@ function WelcomePage() {
                     style={{ fontSize: "24px" }}
                   />
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <h3 className="text-text-heading text-xl font-bold">
                     Continue Previous Session
                   </h3>

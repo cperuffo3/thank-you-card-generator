@@ -1,93 +1,76 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { RecipientSidebar } from "@/components/recipient-sidebar";
-import { RecipientCard } from "@/components/recipient-card";
-import { MessageEditor } from "@/components/message-editor";
+import { createFileRoute } from "@tanstack/react-router";
+import { EditorSidebar, EditorContent } from "@/components/editor";
+import { ExportDialog } from "@/components/export-dialog";
 import { saveSession, exportCsv } from "@/actions/file";
 import { generateMessage, regenerateMessage } from "@/services/openrouter";
+import { useSession } from "@/context/session-context";
 import type { Recipient, Session } from "@/types/recipient";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Save,
-  Download,
-  AlertCircle,
-  Home,
-} from "lucide-react";
+import { toast } from "sonner";
 
 function EditorPage() {
-  const navigate = useNavigate();
-  const { session: sessionParam } = Route.useSearch();
+  const { recipients: recipientsParam } = Route.useSearch();
+  const { apiKey, model, systemPrompt, userPromptTemplate } = useSession();
 
-  const [session, setSession] = useState<Session | null>(null);
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [currentRecipientId, setCurrentRecipientId] = useState<string | null>(
     null,
   );
+  const [filePath] = useState<string | undefined>(undefined);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const hasInitializedRef = useRef(false);
 
-  // Parse session from URL params
+  // Parse recipients from URL params
   useEffect(() => {
-    if (sessionParam && !hasInitializedRef.current) {
+    if (recipientsParam && !hasInitializedRef.current) {
       try {
-        const parsed = JSON.parse(sessionParam) as Session;
-        setSession(parsed);
-        if (parsed.recipients.length > 0) {
-          setCurrentRecipientId(parsed.recipients[0].id);
+        const parsed = JSON.parse(recipientsParam) as Recipient[];
+        setRecipients(parsed);
+        if (parsed.length > 0) {
+          setCurrentRecipientId(parsed[0].id);
         }
         hasInitializedRef.current = true;
       } catch {
-        setError("Failed to parse session data");
+        toast.error("Failed to parse recipient data");
       }
     }
-  }, [sessionParam]);
+  }, [recipientsParam]);
 
-  const currentRecipient = session?.recipients.find(
+  const currentRecipient = recipients.find(
     (r) => r.id === currentRecipientId,
   );
 
   const currentIndex =
-    session?.recipients.findIndex((r) => r.id === currentRecipientId) ?? -1;
-
-  const approvedCount =
-    session?.recipients.filter((r) => r.isApproved).length ?? 0;
-  const totalCount = session?.recipients.length ?? 0;
-  const progressPercent =
-    totalCount > 0 ? (approvedCount / totalCount) * 100 : 0;
+    recipients.findIndex((r) => r.id === currentRecipientId) ?? -1;
 
   const updateRecipient = useCallback(
     (updates: Partial<Recipient>) => {
-      if (!session || !currentRecipientId) return;
+      if (!currentRecipientId) return;
 
-      setSession((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          recipients: prev.recipients.map((r) =>
-            r.id === currentRecipientId ? { ...r, ...updates } : r,
-          ),
-        };
-      });
+      setRecipients((prev) =>
+        prev.map((r) =>
+          r.id === currentRecipientId ? { ...r, ...updates } : r,
+        ),
+      );
     },
-    [session, currentRecipientId],
+    [currentRecipientId],
   );
 
   const handleGenerate = async () => {
-    if (!session || !currentRecipient) return;
+    if (!currentRecipient) return;
 
     setIsGenerating(true);
-    setError(null);
 
     try {
       const message = await generateMessage({
-        apiKey: session.openRouterApiKey,
-        model: session.model,
+        apiKey,
+        model,
         recipient: currentRecipient,
+        systemPrompt,
+        userPromptTemplate,
       });
 
       updateRecipient({
@@ -95,7 +78,7 @@ function EditorPage() {
         lastModified: new Date().toISOString(),
       });
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : "Failed to generate message",
       );
     } finally {
@@ -104,19 +87,19 @@ function EditorPage() {
   };
 
   const handleRegenerate = async (modificationRequest: string) => {
-    if (!session || !currentRecipient || !currentRecipient.generatedMessage)
-      return;
+    if (!currentRecipient || !currentRecipient.generatedMessage) return;
 
     setIsGenerating(true);
-    setError(null);
 
     try {
       const message = await regenerateMessage({
-        apiKey: session.openRouterApiKey,
-        model: session.model,
+        apiKey,
+        model,
         previousMessage: currentRecipient.generatedMessage,
         modificationRequest,
         recipient: currentRecipient,
+        systemPrompt,
+        userPromptTemplate,
       });
 
       updateRecipient({
@@ -124,7 +107,7 @@ function EditorPage() {
         lastModified: new Date().toISOString(),
       });
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : "Failed to regenerate message",
       );
     } finally {
@@ -132,58 +115,89 @@ function EditorPage() {
     }
   };
 
-  const handleSave = async (saveAs = false) => {
-    if (!session) return;
+  const handleOpenExportDialog = () => {
+    setIsExportDialogOpen(true);
+  };
+
+  const handleExport = async (
+    recipientsToExport: Recipient[],
+    fields: (keyof Recipient)[],
+  ) => {
+    if (recipientsToExport.length === 0) {
+      toast.error("No recipients to export");
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      await exportCsv(recipientsToExport, fields);
+      toast.success("CSV exported successfully");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to export CSV");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (recipients.length === 0) {
+      toast.error("No recipients to save");
+      return;
+    }
 
     setIsSaving(true);
-    setError(null);
 
     try {
-      const result = await saveSession(session, saveAs);
-      if (result?.filePath) {
-        setSession((prev) =>
-          prev ? { ...prev, filePath: result.filePath } : prev,
-        );
-      }
+      const session: Session = {
+        openRouterApiKey: apiKey,
+        model,
+        recipients,
+        filePath,
+      };
+      await saveSession(session, true);
+      toast.success("Session saved successfully");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save session");
+      toast.error(err instanceof Error ? err.message : "Failed to save session");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleExport = async () => {
-    if (!session) return;
-
-    const approvedRecipients = session.recipients.filter((r) => r.isApproved);
-    if (approvedRecipients.length === 0) {
-      setError("No approved recipients to export");
-      return;
-    }
-
-    try {
-      await exportCsv(approvedRecipients);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to export CSV");
-    }
-  };
-
   const navigateToRecipient = (direction: "prev" | "next") => {
-    if (!session || currentIndex === -1) return;
+    if (recipients.length === 0 || currentIndex === -1) return;
 
     const newIndex =
       direction === "prev"
         ? Math.max(0, currentIndex - 1)
-        : Math.min(session.recipients.length - 1, currentIndex + 1);
+        : Math.min(recipients.length - 1, currentIndex + 1);
 
-    setCurrentRecipientId(session.recipients[newIndex].id);
+    setCurrentRecipientId(recipients[newIndex].id);
   };
 
-  if (!session) {
+  // Auto-save periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (recipients.length > 0 && filePath) {
+        const session: Session = {
+          openRouterApiKey: apiKey,
+          model,
+          recipients,
+          filePath,
+        };
+        saveSession(session, false).catch(() => {
+          // Silent fail for auto-save
+        });
+      }
+    }, 60000); // Auto-save every minute
+
+    return () => clearInterval(interval);
+  }, [recipients, filePath, apiKey, model]);
+
+  if (recipients.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading session...</p>
+          <p className="text-gray-500">Loading recipients...</p>
         </div>
       </div>
     );
@@ -191,107 +205,42 @@ function EditorPage() {
 
   return (
     <div className="flex h-full flex-col">
-      {error && (
-        <Alert variant="destructive" className="m-4 mb-0">
-          <AlertCircle className="size-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       <div className="flex flex-1 overflow-hidden">
-        <RecipientSidebar
-          recipients={session.recipients}
+        <EditorSidebar
+          recipients={recipients}
           selectedId={currentRecipientId}
           onSelect={setCurrentRecipientId}
+          onExport={handleOpenExportDialog}
+          onSave={handleSave}
+          isExporting={isExporting}
+          isSaving={isSaving}
         />
 
-        <div className="flex flex-1 flex-col overflow-hidden">
-          {currentRecipient ? (
-            <div className="flex-1 overflow-auto p-6">
-              <div className="mx-auto max-w-2xl space-y-6">
-                <RecipientCard recipient={currentRecipient} />
-                <MessageEditor
-                  recipient={currentRecipient}
-                  apiKey={session.openRouterApiKey}
-                  model={session.model}
-                  onUpdateRecipient={updateRecipient}
-                  onGenerate={handleGenerate}
-                  onRegenerate={handleRegenerate}
-                  isGenerating={isGenerating}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-1 items-center justify-center">
-              <p className="text-muted-foreground">
-                Select a recipient from the sidebar
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+        <ExportDialog
+          open={isExportDialogOpen}
+          onOpenChange={setIsExportDialogOpen}
+          recipients={recipients}
+          onExport={handleExport}
+        />
 
-      <div className="flex items-center justify-between border-t px-4 py-3">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate({ to: "/" })}
-          >
-            <Home className="mr-2 size-4" />
-            Home
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigateToRecipient("prev")}
-              disabled={currentIndex <= 0}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <span className="text-muted-foreground min-w-[80px] text-center text-sm">
-              {currentIndex + 1} of {totalCount}
-            </span>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigateToRecipient("next")}
-              disabled={currentIndex >= totalCount - 1}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
+        {currentRecipient ? (
+          <EditorContent
+            recipient={currentRecipient}
+            currentIndex={currentIndex}
+            totalCount={recipients.length}
+            isGenerating={isGenerating}
+            onUpdateRecipient={updateRecipient}
+            onGenerate={handleGenerate}
+            onRegenerate={handleRegenerate}
+            onNavigate={navigateToRecipient}
+          />
+        ) : (
+          <div className="flex flex-1 items-center justify-center bg-gray-50">
+            <p className="text-gray-500">
+              Select a recipient from the sidebar
+            </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex w-48 items-center gap-2">
-            <Progress value={progressPercent} className="flex-1" />
-            <span className="text-muted-foreground text-xs">
-              {approvedCount}/{totalCount}
-            </span>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => handleSave(false)}
-              disabled={isSaving}
-            >
-              <Save className="mr-2 size-4" />
-              Save
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleExport}
-              disabled={approvedCount === 0}
-            >
-              <Download className="mr-2 size-4" />
-              Export CSV
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -300,6 +249,6 @@ function EditorPage() {
 export const Route = createFileRoute("/editor")({
   component: EditorPage,
   validateSearch: (search: Record<string, unknown>) => ({
-    session: (search.session as string) || "",
+    recipients: (search.recipients as string) || "",
   }),
 });

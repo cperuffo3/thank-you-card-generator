@@ -1,16 +1,6 @@
 import { OpenRouter } from "@openrouter/sdk";
 import type { Recipient } from "@/types/recipient";
 
-const SYSTEM_PROMPT = `You are an expert at writing heartfelt, personalized wedding thank you card messages.
-
-Guidelines:
-- Keep messages warm, sincere, and personal
-- Reference the specific gift when provided
-- Keep messages concise (2-4 sentences ideal for a card)
-- Match the formality to the relationship (more formal for business contacts, warmer for family/friends)
-- Do not include a greeting or sign-off - just the body of the thank you message
-- Avoid generic phrases like "it means so much" - be specific and genuine`;
-
 const DEFAULT_MODELS = [
   { id: "google/gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
   { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash" },
@@ -39,6 +29,8 @@ export interface GenerateMessageOptions {
   apiKey: string;
   model: string;
   recipient: Recipient;
+  systemPrompt: string;
+  userPromptTemplate: string;
 }
 
 export interface RegenerateMessageOptions {
@@ -47,6 +39,8 @@ export interface RegenerateMessageOptions {
   previousMessage: string;
   modificationRequest: string;
   recipient: Recipient;
+  systemPrompt: string;
+  userPromptTemplate: string;
 }
 
 function createClient(apiKey: string): OpenRouter {
@@ -78,10 +72,6 @@ function buildRecipientContext(recipient: Recipient): string {
     parts.push(`Recipient: ${primaryName}`);
   }
 
-  if (recipient.company) {
-    parts.push(`Company: ${recipient.company}`);
-  }
-
   if (recipient.gift) {
     parts.push(`Gift: ${recipient.gift}`);
   }
@@ -96,21 +86,28 @@ function buildRecipientContext(recipient: Recipient): string {
 export async function generateMessage(
   options: GenerateMessageOptions,
 ): Promise<string> {
-  const { apiKey, model, recipient } = options;
+  const { apiKey, model, recipient, systemPrompt, userPromptTemplate } =
+    options;
   const client = createClient(apiKey);
 
   const recipientContext = buildRecipientContext(recipient);
-  const userPrompt = recipient.customPrompt
+  const fullRecipientContext = recipient.customPrompt
     ? `${recipientContext}\n\nAdditional context: ${recipient.customPrompt}`
     : recipientContext;
+
+  // Replace placeholder in user prompt template
+  const userPrompt = userPromptTemplate.replace(
+    /\{\{recipientContext\}\}/g,
+    fullRecipientContext
+  );
 
   const result = client.callModel({
     model,
     input: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: `Write a thank you message for this wedding gift:\n\n${userPrompt}`,
+        content: userPrompt,
       },
     ],
   });
@@ -122,19 +119,35 @@ export async function generateMessage(
 export async function regenerateMessage(
   options: RegenerateMessageOptions,
 ): Promise<string> {
-  const { apiKey, model, previousMessage, modificationRequest, recipient } =
-    options;
+  const {
+    apiKey,
+    model,
+    previousMessage,
+    modificationRequest,
+    recipient,
+    systemPrompt,
+    userPromptTemplate,
+  } = options;
   const client = createClient(apiKey);
 
   const recipientContext = buildRecipientContext(recipient);
+  const fullRecipientContext = recipient.customPrompt
+    ? `${recipientContext}\n\nAdditional context: ${recipient.customPrompt}`
+    : recipientContext;
+
+  // Replace placeholder in user prompt template
+  const userPrompt = userPromptTemplate.replace(
+    /\{\{recipientContext\}\}/g,
+    fullRecipientContext
+  );
 
   const result = client.callModel({
     model,
     input: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: `Write a thank you message for this wedding gift:\n\n${recipientContext}`,
+        content: userPrompt,
       },
       { role: "assistant", content: previousMessage },
       {

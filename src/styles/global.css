@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
-@import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -15,7 +14,9 @@
     #fdf2f8 100%
   );
   --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  --gradient-subtle: linear-gradient(to right, #faf5ff 0%, #eff6ff 100%);
 
   /* Welcome page colors */
   --text-heading: #111827;
@@ -103,8 +104,8 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", sans-serif;
-  --font-mono: "Geist Mono", monospace;
+  --font-sans: "Inter Variable", "Inter", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   /* Custom design tokens */
   --color-text-heading: var(--text-heading);
@@ -175,5 +176,17 @@
 
   .draglayer {
     -webkit-app-region: drag;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .bg-gradient-primary:hover {
+    background: var(--gradient-primary-hover);
+  }
+  .bg-gradient-subtle {
+    background: var(--gradient-subtle);
   }
 }

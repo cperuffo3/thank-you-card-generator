@@ -9,12 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ValidateAddressesRouteImport } from './routes/validate-addresses'
 import { Route as ImportPreviewRouteImport } from './routes/import-preview'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as EditorRouteImport } from './routes/editor'
-import { Route as ConfigureRouteImport } from './routes/configure'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ValidateAddressesRoute = ValidateAddressesRouteImport.update({
+  id: '/validate-addresses',
+  path: '/validate-addresses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ImportPreviewRoute = ImportPreviewRouteImport.update({
   id: '/import-preview',
   path: '/import-preview',
@@ -30,11 +35,6 @@ const EditorRoute = EditorRouteImport.update({
   path: '/editor',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConfigureRoute = ConfigureRouteImport.update({
-  id: '/configure',
-  path: '/configure',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,50 +43,62 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/configure': typeof ConfigureRoute
   '/editor': typeof EditorRoute
   '/import': typeof ImportRoute
   '/import-preview': typeof ImportPreviewRoute
+  '/validate-addresses': typeof ValidateAddressesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/configure': typeof ConfigureRoute
   '/editor': typeof EditorRoute
   '/import': typeof ImportRoute
   '/import-preview': typeof ImportPreviewRoute
+  '/validate-addresses': typeof ValidateAddressesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/configure': typeof ConfigureRoute
   '/editor': typeof EditorRoute
   '/import': typeof ImportRoute
   '/import-preview': typeof ImportPreviewRoute
+  '/validate-addresses': typeof ValidateAddressesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/configure' | '/editor' | '/import' | '/import-preview'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/configure' | '/editor' | '/import' | '/import-preview'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
-    | '/configure'
     | '/editor'
     | '/import'
     | '/import-preview'
+    | '/validate-addresses'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/editor' | '/import' | '/import-preview' | '/validate-addresses'
+  id:
+    | '__root__'
+    | '/'
+    | '/editor'
+    | '/import'
+    | '/import-preview'
+    | '/validate-addresses'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ConfigureRoute: typeof ConfigureRoute
   EditorRoute: typeof EditorRoute
   ImportRoute: typeof ImportRoute
   ImportPreviewRoute: typeof ImportPreviewRoute
+  ValidateAddressesRoute: typeof ValidateAddressesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/validate-addresses': {
+      id: '/validate-addresses'
+      path: '/validate-addresses'
+      fullPath: '/validate-addresses'
+      preLoaderRoute: typeof ValidateAddressesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/import-preview': {
       id: '/import-preview'
       path: '/import-preview'
@@ -108,13 +120,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EditorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/configure': {
-      id: '/configure'
-      path: '/configure'
-      fullPath: '/configure'
-      preLoaderRoute: typeof ConfigureRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -127,10 +132,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ConfigureRoute: ConfigureRoute,
   EditorRoute: EditorRoute,
   ImportRoute: ImportRoute,
   ImportPreviewRoute: ImportPreviewRoute,
+  ValidateAddressesRoute: ValidateAddressesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

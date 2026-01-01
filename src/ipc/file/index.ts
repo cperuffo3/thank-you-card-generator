@@ -4,6 +4,8 @@ import {
   saveSession,
   loadSession,
   exportCsv,
+  saveEncryptedSettings,
+  loadEncryptedSettings,
 } from "./handlers";
 
 export const file = {
@@ -12,4 +14,6 @@ export const file = {
   saveSession,
   loadSession,
   exportCsv,
+  saveEncryptedSettings,
+  loadEncryptedSettings,
 };

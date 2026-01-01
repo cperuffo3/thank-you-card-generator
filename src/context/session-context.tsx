@@ -14,7 +14,25 @@ import { getDefaultModels, fetchAvailableModels } from "@/services/openrouter";
 // Local storage keys
 const API_KEY_STORAGE_KEY = "openrouter-api-key";
 const MODEL_STORAGE_KEY = "openrouter-model";
+const GOOGLE_MAPS_API_KEY_STORAGE_KEY = "google-maps-api-key";
+const SYSTEM_PROMPT_STORAGE_KEY = "ai-system-prompt";
+const USER_PROMPT_TEMPLATE_STORAGE_KEY = "ai-user-prompt-template";
 const DEFAULT_MODEL = "google/gemini-3-flash-preview";
+
+// Default prompts
+export const DEFAULT_SYSTEM_PROMPT = `You are an expert at writing heartfelt, personalized wedding thank you card messages.
+
+Guidelines:
+- Keep messages warm, sincere, and personal
+- Reference the specific gift when provided
+- Keep messages concise (2-4 sentences ideal for a card)
+- Match the formality to the relationship (more formal for business contacts, warmer for family/friends)
+- Do not include a greeting or sign-off - just the body of the thank you message
+- Avoid generic phrases like "it means so much" - be specific and genuine`;
+
+export const DEFAULT_USER_PROMPT_TEMPLATE = `Write a thank you message for this wedding gift:
+
+{{recipientContext}}`;
 
 interface SessionContextValue {
   session: Session | null;
@@ -23,8 +41,9 @@ interface SessionContextValue {
   currentRecipientId: string | null;
   setCurrentRecipientId: (id: string | null) => void;
   saveCurrentSession: (saveAs?: boolean) => Promise<void>;
+  clearSession: () => void;
   isDirty: boolean;
-  // API Configuration
+  // OpenRouter API Configuration
   apiKey: string;
   setApiKey: (key: string) => void;
   model: string;
@@ -33,6 +52,16 @@ interface SessionContextValue {
   isLoadingModels: boolean;
   refreshModels: () => Promise<void>;
   isApiConfigured: boolean;
+  // Google Maps API Configuration
+  googleMapsApiKey: string;
+  setGoogleMapsApiKey: (key: string) => void;
+  isGoogleMapsConfigured: boolean;
+  // AI Prompt Configuration
+  systemPrompt: string;
+  setSystemPrompt: (prompt: string) => void;
+  userPromptTemplate: string;
+  setUserPromptTemplate: (template: string) => void;
+  resetPromptsToDefaults: () => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -65,6 +94,35 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const [models, setModels] = useState<OpenRouterModel[]>(getDefaultModels());
   const [isLoadingModels, setIsLoadingModels] = useState(false);
 
+  // Google Maps API key state
+  const [googleMapsApiKey, setGoogleMapsApiKeyState] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY) || "";
+    }
+    return "";
+  });
+
+  // AI Prompt state
+  const [systemPrompt, setSystemPromptState] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem(SYSTEM_PROMPT_STORAGE_KEY) || DEFAULT_SYSTEM_PROMPT
+      );
+    }
+    return DEFAULT_SYSTEM_PROMPT;
+  });
+  const [userPromptTemplate, setUserPromptTemplateState] = useState<string>(
+    () => {
+      if (typeof window !== "undefined") {
+        return (
+          localStorage.getItem(USER_PROMPT_TEMPLATE_STORAGE_KEY) ||
+          DEFAULT_USER_PROMPT_TEMPLATE
+        );
+      }
+      return DEFAULT_USER_PROMPT_TEMPLATE;
+    }
+  );
+
   // Persist API key to localStorage
   const setApiKey = useCallback((key: string) => {
     setApiKeyState(key);
@@ -82,6 +140,44 @@ export function SessionProvider({ children }: SessionProviderProps) {
     setModelState(newModel);
     if (typeof window !== "undefined") {
       localStorage.setItem(MODEL_STORAGE_KEY, newModel);
+    }
+  }, []);
+
+  // Persist Google Maps API key to localStorage
+  const setGoogleMapsApiKey = useCallback((key: string) => {
+    setGoogleMapsApiKeyState(key);
+    if (typeof window !== "undefined") {
+      if (key) {
+        localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, key);
+      } else {
+        localStorage.removeItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY);
+      }
+    }
+  }, []);
+
+  // Persist system prompt to localStorage
+  const setSystemPrompt = useCallback((prompt: string) => {
+    setSystemPromptState(prompt);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SYSTEM_PROMPT_STORAGE_KEY, prompt);
+    }
+  }, []);
+
+  // Persist user prompt template to localStorage
+  const setUserPromptTemplate = useCallback((template: string) => {
+    setUserPromptTemplateState(template);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(USER_PROMPT_TEMPLATE_STORAGE_KEY, template);
+    }
+  }, []);
+
+  // Reset prompts to defaults
+  const resetPromptsToDefaults = useCallback(() => {
+    setSystemPromptState(DEFAULT_SYSTEM_PROMPT);
+    setUserPromptTemplateState(DEFAULT_USER_PROMPT_TEMPLATE);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(SYSTEM_PROMPT_STORAGE_KEY);
+      localStorage.removeItem(USER_PROMPT_TEMPLATE_STORAGE_KEY);
     }
   }, []);
 
@@ -112,6 +208,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isApiConfigured = apiKey.trim().length > 0;
+  const isGoogleMapsConfigured = googleMapsApiKey.trim().length > 0;
 
   const setSession = useCallback((newSession: Session | null) => {
     setSessionState(newSession);
@@ -160,6 +257,12 @@ export function SessionProvider({ children }: SessionProviderProps) {
     [session],
   );
 
+  const clearSession = useCallback(() => {
+    setSessionState(null);
+    setCurrentRecipientId(null);
+    setIsDirty(false);
+  }, []);
+
   const value: SessionContextValue = {
     session,
     setSession,
@@ -167,8 +270,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
     currentRecipientId,
     setCurrentRecipientId,
     saveCurrentSession,
+    clearSession,
     isDirty,
-    // API Configuration
+    // OpenRouter API Configuration
     apiKey,
     setApiKey,
     model,
@@ -177,6 +281,16 @@ export function SessionProvider({ children }: SessionProviderProps) {
     isLoadingModels,
     refreshModels,
     isApiConfigured,
+    // Google Maps API Configuration
+    googleMapsApiKey,
+    setGoogleMapsApiKey,
+    isGoogleMapsConfigured,
+    // AI Prompt Configuration
+    systemPrompt,
+    setSystemPrompt,
+    userPromptTemplate,
+    setUserPromptTemplate,
+    resetPromptsToDefaults,
   };
 
   return (

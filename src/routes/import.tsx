@@ -19,6 +19,7 @@ import {
   CircleAlert,
   CircleCheck,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { ImportErrorDialog } from "@/components/import-error-dialog";
 
 // Field definitions for column mapping
@@ -40,7 +41,6 @@ const OPTIONAL_FIELDS = [
   { key: "partnerTitle", label: "Partner Title" },
   { key: "partnerFirst", label: "Partner First Name" },
   { key: "partnerLast", label: "Partner Last Name" },
-  { key: "company", label: "Company" },
 ] as const;
 
 // Common column name variations for auto-matching
@@ -104,7 +104,6 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "partner_last_name",
     "spouse_last",
   ],
-  company: ["company", "organization", "business", "company_name"],
 };
 
 // Auto-match column headers to field keys
@@ -166,10 +165,14 @@ function ImportPage() {
   const [error, setError] = useState<string | null>(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
 
+  // Loading state for file selection
+  const [isSelectingFile, setIsSelectingFile] = useState(false);
+
   // Select CSV file
   const handleSelectFile = async () => {
     try {
       setError(null);
+      setIsSelectingFile(true);
       const result = await openCsv();
 
       if ("canceled" in result && result.canceled) {
@@ -195,6 +198,8 @@ function ImportPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to open CSV file");
       setShowErrorDialog(true);
+    } finally {
+      setIsSelectingFile(false);
     }
   };
 
@@ -258,10 +263,18 @@ function ImportPage() {
             </div>
             <Button
               onClick={handleSelectFile}
+              disabled={isSelectingFile}
               className="h-12 rounded-xl px-8 text-base font-semibold text-white"
               style={{ background: "var(--gradient-primary)" }}
             >
-              Select CSV File
+              {isSelectingFile ? (
+                <>
+                  <Spinner className="size-5" />
+                  Selecting...
+                </>
+              ) : (
+                "Select CSV File"
+              )}
             </Button>
           </div>
         </main>

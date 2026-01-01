@@ -8,8 +8,10 @@ import {
   exportCsvInputSchema,
   sessionSchema,
   parseCsvWithMappingInputSchema,
+  saveEncryptedSettingsInputSchema,
 } from "./schemas";
 import type { Recipient, Session } from "@/types/recipient";
+import { generateAddressTo } from "@/utils/address-to";
 
 // Parse name that may have "UNMATCHED:" prefix and split into first/last name
 function parseNameField(value: string): {
@@ -110,21 +112,37 @@ export const parseCsvWithMapping = os
           }
         }
 
-        return {
-          id: crypto.randomUUID(),
-          title: row[mapping.title] || "",
+        const title = row[mapping.title] || "";
+        const partnerTitle = mapping.partnerTitle
+          ? row[mapping.partnerTitle] || ""
+          : "";
+        const partnerFirst = mapping.partnerFirst
+          ? row[mapping.partnerFirst] || ""
+          : "";
+        const partnerLast = mapping.partnerLast
+          ? row[mapping.partnerLast] || ""
+          : "";
+
+        // Generate formal address line
+        const addressTo = generateAddressTo({
+          title,
           firstName,
           lastName,
-          partnerTitle: mapping.partnerTitle
-            ? row[mapping.partnerTitle] || ""
-            : "",
-          partnerFirst: mapping.partnerFirst
-            ? row[mapping.partnerFirst] || ""
-            : "",
-          partnerLast: mapping.partnerLast
-            ? row[mapping.partnerLast] || ""
-            : "",
-          company: mapping.company ? row[mapping.company] || "" : "",
+          partnerTitle,
+          partnerFirst,
+          partnerLast,
+        });
+
+        return {
+          id: crypto.randomUUID(),
+          title,
+          firstName,
+          lastName,
+          partnerTitle,
+          partnerFirst,
+          partnerLast,
+          addressTo,
+          addressToOverridden: false,
           address1: mapping.address1 ? row[mapping.address1] || "" : "",
           address2: mapping.address2 ? row[mapping.address2] || "" : "",
           city: mapping.city ? row[mapping.city] || "" : "",
@@ -202,10 +220,51 @@ export const loadSession = os.handler(async () => {
   return { success: true as const, session };
 });
 
+// Field label mapping for CSV headers
+const FIELD_LABELS: Record<string, string> = {
+  title: "Title",
+  firstName: "First Name",
+  lastName: "Last Name",
+  partnerTitle: "Partner Title",
+  partnerFirst: "Partner First",
+  partnerLast: "Partner Last",
+  addressTo: "Address To",
+  address1: "Address 1",
+  address2: "Address 2",
+  city: "City",
+  state: "State",
+  zip: "Zip",
+  country: "Country",
+  gift: "Gift",
+  giftValue: "Gift Value",
+  generatedMessage: "Message",
+};
+
+// Default fields if none specified (all fields)
+const DEFAULT_EXPORT_FIELDS = [
+  "addressTo",
+  "title",
+  "firstName",
+  "lastName",
+  "partnerTitle",
+  "partnerFirst",
+  "partnerLast",
+  "address1",
+  "address2",
+  "city",
+  "state",
+  "zip",
+  "country",
+  "gift",
+  "giftValue",
+  "generatedMessage",
+] as const;
+
 export const exportCsv = os
   .input(exportCsvInputSchema)
   .handler(async ({ input }) => {
-    const { recipients } = input;
+    const { recipients, fields } = input;
+    const exportFields = fields || DEFAULT_EXPORT_FIELDS;
 
     const result = await dialog.showSaveDialog({
       title: "Export CSV",
@@ -217,27 +276,55 @@ export const exportCsv = os
       return { success: false as const, canceled: true };
     }
 
-    const rows = recipients.map((r) => ({
-      Title: r.title,
-      "First Name": r.firstName,
-      "Last Name": r.lastName,
-      "Partner Title": r.partnerTitle,
-      "Partner First": r.partnerFirst,
-      "Partner Last": r.partnerLast,
-      Company: r.company,
-      "Address 1": r.address1,
-      "Address 2": r.address2,
-      City: r.city,
-      State: r.state,
-      Zip: r.zip,
-      Country: r.country,
-      Gift: r.gift,
-      "Gift Value": r.giftValue,
-      Message: r.generatedMessage,
-    }));
+    // Build rows with only the selected fields
+    const rows = recipients.map((r) => {
+      const row: Record<string, string> = {};
+      exportFields.forEach((field) => {
+        const label = FIELD_LABELS[field] || field;
+        row[label] = r[field as keyof Recipient] as string;
+      });
+      return row;
+    });
 
     const csvContent = stringifyCsv(rows, { header: true });
     await writeFile(result.filePath, csvContent, "utf-8");
 
     return { success: true as const, filePath: result.filePath };
   });
+
+export const saveEncryptedSettings = os
+  .input(saveEncryptedSettingsInputSchema)
+  .handler(async ({ input }) => {
+    const { encryptedData } = input;
+
+    const result = await dialog.showSaveDialog({
+      title: "Export Settings",
+      defaultPath: "wedding-app-settings.enc",
+      filters: [{ name: "Encrypted Settings", extensions: ["enc"] }],
+    });
+
+    if (result.canceled || !result.filePath) {
+      return { success: false as const, canceled: true };
+    }
+
+    await writeFile(result.filePath, encryptedData, "utf-8");
+
+    return { success: true as const, filePath: result.filePath };
+  });
+
+export const loadEncryptedSettings = os.handler(async () => {
+  const result = await dialog.showOpenDialog({
+    title: "Import Settings",
+    filters: [{ name: "Encrypted Settings", extensions: ["enc"] }],
+    properties: ["openFile"],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return { success: false as const, canceled: true };
+  }
+
+  const filePath = result.filePaths[0];
+  const content = await readFile(filePath, "utf-8");
+
+  return { success: true as const, encryptedData: content, filePath };
+});

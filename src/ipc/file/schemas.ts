@@ -8,7 +8,8 @@ const recipientSchema = z.object({
   partnerTitle: z.string(),
   partnerFirst: z.string(),
   partnerLast: z.string(),
-  company: z.string(),
+  addressTo: z.string(),
+  addressToOverridden: z.boolean(),
   address1: z.string(),
   address2: z.string(),
   city: z.string(),
@@ -21,6 +22,10 @@ const recipientSchema = z.object({
   generatedMessage: z.string(),
   isApproved: z.boolean(),
   lastModified: z.string(),
+  // Address validation fields
+  addressValidated: z.boolean().optional(),
+  addressValidationError: z.string().optional(),
+  formattedAddress: z.string().optional(),
 });
 
 export const sessionSchema = z.object({
@@ -37,6 +42,28 @@ export const saveSessionInputSchema = z.object({
 
 export const exportCsvInputSchema = z.object({
   recipients: z.array(recipientSchema),
+  fields: z
+    .array(
+      z.enum([
+        "title",
+        "firstName",
+        "lastName",
+        "partnerTitle",
+        "partnerFirst",
+        "partnerLast",
+        "addressTo",
+        "address1",
+        "address2",
+        "city",
+        "state",
+        "zip",
+        "country",
+        "gift",
+        "giftValue",
+        "generatedMessage",
+      ]),
+    )
+    .optional(),
 });
 
 export const columnMappingSchema = z.object({
@@ -48,7 +75,6 @@ export const columnMappingSchema = z.object({
   partnerTitle: z.string().optional(),
   partnerFirst: z.string().optional(),
   partnerLast: z.string().optional(),
-  company: z.string().optional(),
   address1: z.string().optional(),
   address2: z.string().optional(),
   city: z.string().optional(),
@@ -60,4 +86,18 @@ export const columnMappingSchema = z.object({
 export const parseCsvWithMappingInputSchema = z.object({
   filePath: z.string(),
   mapping: columnMappingSchema,
+});
+
+export const exportedSettingsSchema = z.object({
+  version: z.number(),
+  openRouterApiKey: z.string(),
+  model: z.string(),
+  googleMapsApiKey: z.string(),
+  systemPrompt: z.string(),
+  userPromptTemplate: z.string(),
+  exportedAt: z.string(),
+});
+
+export const saveEncryptedSettingsInputSchema = z.object({
+  encryptedData: z.string(),
 });

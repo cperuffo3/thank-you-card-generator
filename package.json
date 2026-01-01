@@ -57,8 +57,7 @@
     "vite": "^7.3.0"
   },
   "dependencies": {
-    "@fontsource-variable/geist": "^5.2.8",
-    "@fontsource-variable/geist-mono": "^5.2.7",
+    "@fontsource-variable/inter": "^5.2.8",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
@@ -70,6 +69,7 @@
     "@tanstack/react-query": "^5.90.13",
     "@tanstack/react-router": "^1.144.0",
     "@tanstack/react-router-devtools": "^1.144.0",
+    "@vis.gl/react-google-maps": "^1.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -77,10 +77,12 @@
     "csv-stringify": "^6.6.0",
     "electron-squirrel-startup": "^1.0.1",
     "lucide-react": "^0.562.0",
+    "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "shadcn": "^3.6.2",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "update-electron-app": "^3.1.2",
     "zod": "^4.2.1"

@@ -20,7 +20,7 @@ const buttonVariants = cva(
           "bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/20 text-destructive focus-visible:border-destructive/40 dark:hover:bg-destructive/30",
         link: "text-primary underline-offset-4 hover:underline",
         // Card-style button for action cards on welcome page
-        card: "w-full cursor-pointer rounded-xl border-2 border-transparent bg-white p-6 text-left transition-all hover:shadow-lg",
+        card: "flex w-full min-w-0 box-border cursor-pointer rounded-xl border-2 border-transparent bg-white p-6 text-left transition-all hover:shadow-lg items-start justify-start overflow-hidden whitespace-normal",
         // Text-only back button with icon
         textBack:
           "self-start text-text-body hover:text-text-heading gap-2 text-sm font-medium transition-colors bg-transparent",

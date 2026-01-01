@@ -1,6 +1,5 @@
 import BaseLayout from "@/layouts/base-layout";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
-import { SessionProvider } from "@/context/session-context";
 /* import { TanStackRouterDevtools } from '@tanstack/react-router-devtools' */
 
 /*
@@ -9,13 +8,11 @@ import { SessionProvider } from "@/context/session-context";
 
 function Root() {
   return (
-    <SessionProvider>
-      <BaseLayout>
-        <Outlet />
-        {/* Uncomment the following line to enable the router devtools */}
-        {/* <TanStackRouterDevtools /> */}
-      </BaseLayout>
-    </SessionProvider>
+    <BaseLayout>
+      <Outlet />
+      {/* Uncomment the following line to enable the router devtools */}
+      {/* <TanStackRouterDevtools /> */}
+    </BaseLayout>
   );
 }
 

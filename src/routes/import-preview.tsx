@@ -10,7 +10,6 @@ import {
   Eye,
   CheckCircle,
   AlertTriangle,
-  Info,
   Users,
   Gift,
   MapPin,
@@ -133,10 +132,10 @@ function ImportPreviewPage() {
     });
   };
 
-  // Confirm import and go to configure
+  // Confirm import and go to address validation
   const handleConfirm = () => {
     navigate({
-      to: "/configure",
+      to: "/validate-addresses",
       search: { recipients: JSON.stringify(recipients) },
     });
   };
@@ -217,20 +216,6 @@ function ImportPreviewPage() {
               </p>
               <p className="text-sm text-green-700">
                 Review the data below before confirming
-              </p>
-            </div>
-          </div>
-
-          {/* Info banner */}
-          <div className="flex items-start gap-3 rounded-xl bg-blue-50 px-5 py-4">
-            <Info className="mt-0.5 size-5 text-blue-600" />
-            <div>
-              <p className="font-semibold text-blue-800">
-                Showing {stats.total} recipients
-              </p>
-              <p className="text-sm text-blue-700">
-                Verify that names, addresses, and gifts are imported correctly.
-                You can edit individual messages after import.
               </p>
             </div>
           </div>

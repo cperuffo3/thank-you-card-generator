@@ -1,6 +1,11 @@
 import { getPlatform } from "@/actions/app";
 import { closeWindow, maximizeWindow, minimizeWindow } from "@/actions/window";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { type ReactNode, useEffect, useState } from "react";
 
 interface DragWindowRegionProps {
@@ -54,68 +59,80 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
 function WindowButtons() {
   return (
     <div className="flex">
-      <Button
-        title="Minimize"
-        type="button"
-        variant="windowControl"
-        className="hover:bg-slate-300"
-        onClick={minimizeWindow}
-      >
-        <svg
-          aria-hidden="true"
-          role="img"
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-        >
-          <rect fill="currentColor" width="10" height="1" x="1" y="6"></rect>
-        </svg>
-      </Button>
-      <Button
-        title="Maximize"
-        type="button"
-        variant="windowControl"
-        className="hover:bg-slate-300"
-        onClick={maximizeWindow}
-      >
-        <svg
-          aria-hidden="true"
-          role="img"
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-        >
-          <rect
-            width="9"
-            height="9"
-            x="1.5"
-            y="1.5"
-            fill="none"
-            stroke="currentColor"
-          ></rect>
-        </svg>
-      </Button>
-      <Button
-        type="button"
-        title="Close"
-        variant="windowControl"
-        className="hover:bg-red-300"
-        onClick={closeWindow}
-      >
-        <svg
-          aria-hidden="true"
-          role="img"
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-        >
-          <polygon
-            fill="currentColor"
-            fillRule="evenodd"
-            points="11 1.576 6.583 6 11 10.424 10.424 11 6 6.583 1.576 11 1 10.424 5.417 6 1 1.576 1.576 1 6 5.417 10.424 1"
-          ></polygon>
-        </svg>
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="windowControl"
+            className="hover:bg-slate-300"
+            onClick={minimizeWindow}
+          >
+            <svg
+              aria-hidden="true"
+              role="img"
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+            >
+              <rect fill="currentColor" width="10" height="1" x="1" y="6"></rect>
+            </svg>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Minimize</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="windowControl"
+            className="hover:bg-slate-300"
+            onClick={maximizeWindow}
+          >
+            <svg
+              aria-hidden="true"
+              role="img"
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+            >
+              <rect
+                width="9"
+                height="9"
+                x="1.5"
+                y="1.5"
+                fill="none"
+                stroke="currentColor"
+              ></rect>
+            </svg>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Maximize</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="windowControl"
+            className="hover:bg-red-300"
+            onClick={closeWindow}
+          >
+            <svg
+              aria-hidden="true"
+              role="img"
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+            >
+              <polygon
+                fill="currentColor"
+                fillRule="evenodd"
+                points="11 1.576 6.583 6 11 10.424 10.424 11 6 6.583 1.576 11 1 10.424 5.417 6 1 1.576 1.576 1 6 5.417 10.424 1"
+              ></polygon>
+            </svg>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Close</TooltipContent>
+      </Tooltip>
     </div>
   );
 }
