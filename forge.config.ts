@@ -16,18 +16,18 @@ const config: ForgeConfig = {
     extendInfo: {
       CFBundleDocumentTypes: [
         {
-          CFBundleTypeName: "Wedding Thank You Card File",
+          CFBundleTypeName: "Thank You Card File",
           CFBundleTypeRole: "Editor",
           LSHandlerRank: "Owner",
-          LSItemContentTypes: ["com.wedding-thank-you.card"],
+          LSItemContentTypes: ["com.thank-you-cards.card"],
           CFBundleTypeIconFile: "icon.icns",
           CFBundleTypeExtensions: ["card"],
         },
       ],
       UTExportedTypeDeclarations: [
         {
-          UTTypeIdentifier: "com.wedding-thank-you.card",
-          UTTypeDescription: "Wedding Thank You Card File",
+          UTTypeIdentifier: "com.thank-you-cards.card",
+          UTTypeDescription: "Thank You Card File",
           UTTypeConformsTo: ["public.data"],
           UTTypeTagSpecification: {
             "public.filename-extension": ["card"],
@@ -65,7 +65,7 @@ const config: ForgeConfig = {
       config: {
         repository: {
           owner: "cperuffo3",
-          name: "wedding-thank-you-card-generator",
+          name: "thank-you-card-generator",
         },
         draft: true,
         prerelease: false,

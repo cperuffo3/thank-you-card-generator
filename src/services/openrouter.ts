@@ -46,8 +46,8 @@ export interface RegenerateMessageOptions {
 function createClient(apiKey: string): OpenRouter {
   return new OpenRouter({
     apiKey,
-    httpReferer: "https://github.com/wedding-thank-you-card-generator",
-    xTitle: "Wedding Thank You Card Generator",
+    httpReferer: "https://github.com/thank-you-card-generator",
+    xTitle: "Thank You Card Generator",
   });
 }
 
@@ -98,7 +98,7 @@ export async function generateMessage(
   // Replace placeholder in user prompt template
   const userPrompt = userPromptTemplate.replace(
     /\{\{recipientContext\}\}/g,
-    fullRecipientContext
+    fullRecipientContext,
   );
 
   const result = client.callModel({
@@ -138,7 +138,7 @@ export async function regenerateMessage(
   // Replace placeholder in user prompt template
   const userPrompt = userPromptTemplate.replace(
     /\{\{recipientContext\}\}/g,
-    fullRecipientContext
+    fullRecipientContext,
   );
 
   const result = client.callModel({
