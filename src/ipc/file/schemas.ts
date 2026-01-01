@@ -64,6 +64,7 @@ export const exportCsvInputSchema = z.object({
       ]),
     )
     .optional(),
+  filename: z.string().optional(),
 });
 
 export const columnMappingSchema = z.object({

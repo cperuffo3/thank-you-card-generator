@@ -29,6 +29,8 @@ import {
   Pencil,
   XCircle,
   Cog,
+  Copy,
+  X,
 } from "lucide-react";
 
 interface EditorContentProps {
@@ -90,6 +92,7 @@ export function EditorContent({
   const [isEditGiftDialogOpen, setIsEditGiftDialogOpen] = useState(false);
   const [isAIEditDialogOpen, setIsAIEditDialogOpen] = useState(false);
   const [isPromptSettingsOpen, setIsPromptSettingsOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const {
     systemPrompt,
     setSystemPrompt,
@@ -117,6 +120,13 @@ export function EditorContent({
     });
   };
 
+  const handleUnapprove = () => {
+    onUpdateRecipient({
+      isApproved: false,
+      lastModified: new Date().toISOString(),
+    });
+  };
+
   const handleRegenerate = async () => {
     if (!modificationRequest.trim()) {
       await onGenerate();
@@ -132,6 +142,14 @@ export function EditorContent({
 
   const handleAIEditGenerate = (modificationRequest: string) => {
     onRegenerate(modificationRequest);
+  };
+
+  const handleCopy = async () => {
+    if (recipient.generatedMessage) {
+      await navigator.clipboard.writeText(recipient.generatedMessage);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   };
 
   const handleSaveGift = (gift: string, giftValue: string) => {
@@ -454,36 +472,68 @@ export function EditorContent({
 
               {/* Action Buttons */}
               <div className="mt-4 flex gap-3">
-                <Button
-                  onClick={handleApprove}
-                  disabled={recipient.isApproved || isGenerating}
-                  className="h-12 flex-1 bg-indigo-500 hover:bg-indigo-600"
-                >
-                  <Check className="mr-2 size-4" />
-                  Approve Message
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleRegenerate}
-                  disabled={isGenerating}
-                  className="h-12 px-4"
-                >
-                  {isGenerating ? (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="mr-2 size-4" />
-                  )}
-                  Regenerate
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleEditWithAI}
-                  disabled={isGenerating}
-                  className="h-12 px-4"
-                >
-                  <Wand2 className="mr-2 size-4" />
-                  Edit with AI
-                </Button>
+                {recipient.isApproved ? (
+                  <Button
+                    onClick={handleUnapprove}
+                    variant="outline"
+                    className="h-12 flex-1 border-red-600 text-red-600 hover:bg-red-50"
+                  >
+                    <X className="mr-2 size-4" />
+                    Unapprove
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleApprove}
+                    disabled={isGenerating}
+                    className="h-12 flex-1 bg-indigo-500 hover:bg-indigo-600"
+                  >
+                    <Check className="mr-2 size-4" />
+                    Approve Message
+                  </Button>
+                )}
+                {recipient.isApproved ? (
+                  <Button
+                    onClick={handleCopy}
+                    className={`h-12 flex-1 ${isCopied ? "bg-green-500 hover:bg-green-600" : "bg-purple-500 hover:bg-purple-600"}`}
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="mr-2 size-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 size-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleRegenerate}
+                      disabled={isGenerating}
+                      className="h-12 px-4"
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="mr-2 size-4" />
+                      )}
+                      Regenerate
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleEditWithAI}
+                      disabled={isGenerating}
+                      className="h-12 px-4"
+                    >
+                      <Wand2 className="mr-2 size-4" />
+                      Edit with AI
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}

@@ -178,13 +178,11 @@ const CONTACTS_ONLY_FIELDS: (keyof Recipient)[] = [
   "partnerTitle",
   "partnerFirst",
   "partnerLast",
-  "addressTo",
   "address1",
   "address2",
   "city",
   "state",
   "zip",
-  "country",
 ];
 
 const MESSAGES_EXPORT_FIELDS: (keyof Recipient)[] = [
@@ -205,7 +203,7 @@ interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   recipients: Recipient[];
-  onExport: (recipients: Recipient[], fields: (keyof Recipient)[]) => void;
+  onExport: (recipients: Recipient[], fields: (keyof Recipient)[], filename: string) => void;
 }
 
 const CATEGORIES: Record<Category, { label: string; icon: typeof faUser }> = {
@@ -795,7 +793,7 @@ export function ExportDialog({
 
   const handleSelectOption = (option: "contacts" | "messages" | "custom") => {
     if (option === "contacts") {
-      onExport(recipients, CONTACTS_ONLY_FIELDS);
+      onExport(recipients, CONTACTS_ONLY_FIELDS, "Thank You Card Contacts.csv");
       handleClose();
     } else if (option === "messages") {
       const approved = recipients.filter((r) => r.isApproved);
@@ -803,7 +801,7 @@ export function ExportDialog({
         toast.error("No approved recipients to export. Please approve some messages first.");
         return;
       }
-      onExport(approved, MESSAGES_EXPORT_FIELDS);
+      onExport(approved, MESSAGES_EXPORT_FIELDS, "Thank You Card Messages.csv");
       handleClose();
     } else {
       setView("custom");
@@ -811,7 +809,7 @@ export function ExportDialog({
   };
 
   const handleCustomExport = (fields: (keyof Recipient)[]) => {
-    onExport(recipients, fields);
+    onExport(recipients, fields, "Thank You Cards.csv");
     handleClose();
   };
 

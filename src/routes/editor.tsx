@@ -141,6 +141,7 @@ function EditorPage() {
   const handleExport = async (
     recipientsToExport: Recipient[],
     fields: (keyof Recipient)[],
+    filename: string,
   ) => {
     if (recipientsToExport.length === 0) {
       toast.error("No recipients to export");
@@ -149,7 +150,7 @@ function EditorPage() {
 
     setIsExporting(true);
     try {
-      await exportCsv(recipientsToExport, fields);
+      await exportCsv(recipientsToExport, fields, filename);
       toast.success("CSV exported successfully");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to export CSV");

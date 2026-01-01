@@ -212,12 +212,12 @@ const DEFAULT_EXPORT_FIELDS = [
 export const exportCsv = os
   .input(exportCsvInputSchema)
   .handler(async ({ input }) => {
-    const { recipients, fields } = input;
+    const { recipients, fields, filename } = input;
     const exportFields = fields || DEFAULT_EXPORT_FIELDS;
 
     const result = await dialog.showSaveDialog({
       title: "Export CSV",
-      defaultPath: "thank-you-cards.csv",
+      defaultPath: filename || "Thank You Cards.csv",
       filters: [{ name: "CSV Files", extensions: ["csv"] }],
     });
 

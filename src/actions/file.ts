@@ -33,10 +33,11 @@ type ExportableField =
   | "city" | "state" | "zip" | "country"
   | "gift" | "giftValue" | "generatedMessage";
 
-export function exportCsv(recipients: Recipient[], fields?: (keyof Recipient)[]) {
+export function exportCsv(recipients: Recipient[], fields?: (keyof Recipient)[], filename?: string) {
   return ipc.client.file.exportCsv({
     recipients,
-    fields: fields as ExportableField[] | undefined
+    fields: fields as ExportableField[] | undefined,
+    filename,
   });
 }
 
