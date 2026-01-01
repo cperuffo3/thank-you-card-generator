@@ -4,13 +4,12 @@ import { readFile, writeFile } from "fs/promises";
 import { parse as parseCsv } from "csv-parse/sync";
 import { stringify as stringifyCsv } from "csv-stringify/sync";
 import {
-  saveSessionInputSchema,
   exportCsvInputSchema,
-  sessionSchema,
   parseCsvWithMappingInputSchema,
-  saveEncryptedSettingsInputSchema,
+  saveCardFileInputSchema,
+  loadCardFileFromPathInputSchema,
 } from "./schemas";
-import type { Recipient, Session } from "@/types/recipient";
+import type { Recipient } from "@/types/recipient";
 import { generateAddressTo } from "@/utils/address-to";
 
 // Parse name that may have "UNMATCHED:" prefix and split into first/last name
@@ -168,57 +167,7 @@ export const parseCsvWithMapping = os
     }
   });
 
-export const saveSession = os
-  .input(saveSessionInputSchema)
-  .handler(async ({ input }) => {
-    const { session, saveAs } = input;
-
-    let filePath = session.filePath;
-
-    if (!filePath || saveAs) {
-      const result = await dialog.showSaveDialog({
-        title: "Save Session",
-        defaultPath: "wedding-thank-you-session.json",
-        filters: [{ name: "JSON Files", extensions: ["json"] }],
-      });
-
-      if (result.canceled || !result.filePath) {
-        return { success: false as const, canceled: true };
-      }
-
-      filePath = result.filePath;
-    }
-
-    const sessionToSave: Session = {
-      ...session,
-      filePath,
-    };
-
-    await writeFile(filePath, JSON.stringify(sessionToSave, null, 2), "utf-8");
-
-    return { success: true as const, filePath };
-  });
-
-export const loadSession = os.handler(async () => {
-  const result = await dialog.showOpenDialog({
-    title: "Load Session",
-    filters: [{ name: "JSON Files", extensions: ["json"] }],
-    properties: ["openFile"],
-  });
-
-  if (result.canceled || result.filePaths.length === 0) {
-    return { success: false as const, canceled: true };
-  }
-
-  const filePath = result.filePaths[0];
-  const content = await readFile(filePath, "utf-8");
-  const data = JSON.parse(content);
-
-  const session = sessionSchema.parse(data);
-  session.filePath = filePath;
-
-  return { success: true as const, session };
-});
+// Old saveSession and loadSession handlers removed - use card file handlers instead
 
 // Field label mapping for CSV headers
 const FIELD_LABELS: Record<string, string> = {
@@ -292,30 +241,40 @@ export const exportCsv = os
     return { success: true as const, filePath: result.filePath };
   });
 
-export const saveEncryptedSettings = os
-  .input(saveEncryptedSettingsInputSchema)
+// Old saveEncryptedSettings and loadEncryptedSettings handlers removed - use card file handlers instead
+
+// ========== Card File Handlers (Unified Format) ==========
+
+export const saveCardFile = os
+  .input(saveCardFileInputSchema)
   .handler(async ({ input }) => {
-    const { encryptedData } = input;
+    const { encryptedData, saveAs, currentFilePath } = input;
 
-    const result = await dialog.showSaveDialog({
-      title: "Export Settings",
-      defaultPath: "wedding-app-settings.enc",
-      filters: [{ name: "Encrypted Settings", extensions: ["enc"] }],
-    });
+    let filePath = currentFilePath;
 
-    if (result.canceled || !result.filePath) {
-      return { success: false as const, canceled: true };
+    if (!filePath || saveAs) {
+      const result = await dialog.showSaveDialog({
+        title: "Save Card File",
+        defaultPath: "Thank You Cards.card",
+        filters: [{ name: "Wedding Card Files", extensions: ["card"] }],
+      });
+
+      if (result.canceled || !result.filePath) {
+        return { success: false as const, canceled: true };
+      }
+
+      filePath = result.filePath;
     }
 
-    await writeFile(result.filePath, encryptedData, "utf-8");
+    await writeFile(filePath, encryptedData, "utf-8");
 
-    return { success: true as const, filePath: result.filePath };
+    return { success: true as const, filePath };
   });
 
-export const loadEncryptedSettings = os.handler(async () => {
+export const loadCardFile = os.handler(async () => {
   const result = await dialog.showOpenDialog({
-    title: "Import Settings",
-    filters: [{ name: "Encrypted Settings", extensions: ["enc"] }],
+    title: "Open Card File",
+    filters: [{ name: "Wedding Card Files", extensions: ["card"] }],
     properties: ["openFile"],
   });
 
@@ -328,3 +287,19 @@ export const loadEncryptedSettings = os.handler(async () => {
 
   return { success: true as const, encryptedData: content, filePath };
 });
+
+export const loadCardFileFromPath = os
+  .input(loadCardFileFromPathInputSchema)
+  .handler(async ({ input }) => {
+    const { filePath } = input;
+
+    try {
+      const content = await readFile(filePath, "utf-8");
+      return { success: true as const, encryptedData: content, filePath };
+    } catch (error) {
+      return {
+        success: false as const,
+        error: error instanceof Error ? error.message : "Failed to load file",
+      };
+    }
+  });

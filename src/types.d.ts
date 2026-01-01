@@ -3,3 +3,13 @@
 // whether you're running in development or production).
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
+
+// Electron API exposed via preload
+interface ElectronAPI {
+  onOpenCardFile: (callback: (filePath: string) => void) => void;
+  removeOpenCardFileListener: () => void;
+}
+
+interface Window {
+  electronAPI?: ElectronAPI;
+}

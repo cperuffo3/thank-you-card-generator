@@ -7,9 +7,15 @@ import {
   type ReactNode,
 } from "react";
 import type { Session, Recipient } from "@/types/recipient";
-import { saveSession } from "@/actions/file";
+import { saveCardFile as saveCardFileAction, loadCardFile as loadCardFileAction, loadCardFileFromPath } from "@/actions/file";
 import type { OpenRouterModel } from "@/services/openrouter";
 import { getDefaultModels, fetchAvailableModels } from "@/services/openrouter";
+import {
+  createCardFileData,
+  encryptCardFile,
+  decryptCardFile,
+  extractSettings,
+} from "@/utils/card-crypto";
 
 // Local storage keys
 const API_KEY_STORAGE_KEY = "openrouter-api-key";
@@ -40,9 +46,12 @@ interface SessionContextValue {
   updateRecipient: (id: string, updates: Partial<Recipient>) => void;
   currentRecipientId: string | null;
   setCurrentRecipientId: (id: string | null) => void;
-  saveCurrentSession: (saveAs?: boolean) => Promise<void>;
+  saveCurrentSession: (saveAs?: boolean) => Promise<{ success: boolean; filePath?: string }>;
+  loadSessionFromFile: () => Promise<{ success: boolean; hasRecipients: boolean }>;
+  loadSessionFromPath: (filePath: string) => Promise<{ success: boolean; hasRecipients: boolean }>;
   clearSession: () => void;
   isDirty: boolean;
+  cardFilePath: string | null;
   // OpenRouter API Configuration
   apiKey: string;
   setApiKey: (key: string) => void;
@@ -76,6 +85,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
     null,
   );
   const [isDirty, setIsDirty] = useState(false);
+  const [cardFilePath, setCardFilePath] = useState<string | null>(null);
 
   // API Configuration state
   const [apiKey, setApiKeyState] = useState<string>(() => {
@@ -243,23 +253,121 @@ export function SessionProvider({ children }: SessionProviderProps) {
   );
 
   const saveCurrentSession = useCallback(
-    async (saveAs?: boolean) => {
-      if (!session) return;
+    async (saveAs?: boolean): Promise<{ success: boolean; filePath?: string }> => {
+      if (!session) return { success: false };
 
-      const result = await saveSession(session, saveAs);
+      // Create the unified card file data
+      const cardData = createCardFileData({
+        openRouterApiKey: apiKey,
+        model,
+        googleMapsApiKey,
+        systemPrompt,
+        userPromptTemplate,
+        recipients: session.recipients,
+      });
+
+      const encryptedData = await encryptCardFile(cardData);
+      const result = await saveCardFileAction(
+        encryptedData,
+        saveAs,
+        cardFilePath || undefined
+      );
+
       if (result.success && result.filePath) {
-        setSessionState((prev) =>
-          prev ? { ...prev, filePath: result.filePath } : prev,
-        );
+        setCardFilePath(result.filePath);
         setIsDirty(false);
+        return { success: true, filePath: result.filePath };
       }
+
+      return { success: false };
     },
-    [session],
+    [session, apiKey, model, googleMapsApiKey, systemPrompt, userPromptTemplate, cardFilePath],
   );
+
+  const loadSessionFromFile = useCallback(async (): Promise<{ success: boolean; hasRecipients: boolean }> => {
+    const result = await loadCardFileAction();
+
+    if (result.success && result.encryptedData) {
+      try {
+        const cardData = await decryptCardFile(result.encryptedData);
+        const settings = extractSettings(cardData);
+        const hasRecipients = cardData.recipients && cardData.recipients.length > 0;
+
+        // Update settings
+        setApiKey(settings.openRouterApiKey);
+        setModel(settings.model);
+        setGoogleMapsApiKey(settings.googleMapsApiKey);
+        setSystemPrompt(settings.systemPrompt);
+        setUserPromptTemplate(settings.userPromptTemplate);
+
+        // Only update session if there are recipients
+        if (hasRecipients) {
+          const newSession: Session = {
+            openRouterApiKey: settings.openRouterApiKey,
+            model: settings.model,
+            recipients: cardData.recipients,
+            filePath: result.filePath,
+          };
+          setSessionState(newSession);
+          setCardFilePath(result.filePath || null);
+          setCurrentRecipientId(cardData.recipients[0].id);
+        }
+        setIsDirty(false);
+
+        return { success: true, hasRecipients };
+      } catch (error) {
+        console.error("Failed to decrypt card file:", error);
+        return { success: false, hasRecipients: false };
+      }
+    }
+
+    return { success: false, hasRecipients: false };
+  }, [setApiKey, setModel, setGoogleMapsApiKey, setSystemPrompt, setUserPromptTemplate]);
+
+  const loadSessionFromPath = useCallback(async (filePath: string): Promise<{ success: boolean; hasRecipients: boolean }> => {
+    const result = await loadCardFileFromPath(filePath);
+
+    if (result.success && result.encryptedData) {
+      try {
+        const cardData = await decryptCardFile(result.encryptedData);
+        const settings = extractSettings(cardData);
+        const hasRecipients = cardData.recipients && cardData.recipients.length > 0;
+
+        // Update settings
+        setApiKey(settings.openRouterApiKey);
+        setModel(settings.model);
+        setGoogleMapsApiKey(settings.googleMapsApiKey);
+        setSystemPrompt(settings.systemPrompt);
+        setUserPromptTemplate(settings.userPromptTemplate);
+
+        // Only update session if there are recipients
+        if (hasRecipients) {
+          const newSession: Session = {
+            openRouterApiKey: settings.openRouterApiKey,
+            model: settings.model,
+            recipients: cardData.recipients,
+            filePath: result.filePath,
+          };
+          setSessionState(newSession);
+          setCardFilePath(result.filePath || null);
+          setCurrentRecipientId(cardData.recipients[0].id);
+        }
+        setIsDirty(false);
+
+        return { success: true, hasRecipients };
+      } catch (error) {
+        console.error("Failed to decrypt card file:", error);
+        return { success: false, hasRecipients: false };
+      }
+    }
+
+    return { success: false, hasRecipients: false };
+  }, [setApiKey, setModel, setGoogleMapsApiKey, setSystemPrompt, setUserPromptTemplate]);
 
   const clearSession = useCallback(() => {
     setSessionState(null);
     setCurrentRecipientId(null);
+    setCardFilePath(null);
     setIsDirty(false);
   }, []);
 
@@ -270,8 +378,11 @@ export function SessionProvider({ children }: SessionProviderProps) {
     currentRecipientId,
     setCurrentRecipientId,
     saveCurrentSession,
+    loadSessionFromFile,
+    loadSessionFromPath,
     clearSession,
     isDirty,
+    cardFilePath,
     // OpenRouter API Configuration
     apiKey,
     setApiKey,

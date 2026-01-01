@@ -1,19 +1,17 @@
 import {
   openCsv,
   parseCsvWithMapping,
-  saveSession,
-  loadSession,
   exportCsv,
-  saveEncryptedSettings,
-  loadEncryptedSettings,
+  saveCardFile,
+  loadCardFile,
+  loadCardFileFromPath,
 } from "./handlers";
 
 export const file = {
   openCsv,
   parseCsvWithMapping,
-  saveSession,
-  loadSession,
   exportCsv,
-  saveEncryptedSettings,
-  loadEncryptedSettings,
+  saveCardFile,
+  loadCardFile,
+  loadCardFileFromPath,
 };

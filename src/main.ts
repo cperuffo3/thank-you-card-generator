@@ -11,6 +11,17 @@ import { updateElectronApp, UpdateSourceType } from "update-electron-app";
 
 const inDevelopment = process.env.NODE_ENV === "development";
 
+// Store the file path to open (for file association)
+let filePathToOpen: string | null = null;
+
+// Check for .card file in command line args (Windows file association)
+if (process.platform === "win32") {
+  const cardFile = process.argv.find(arg => arg.endsWith(".card"));
+  if (cardFile) {
+    filePathToOpen = cardFile;
+  }
+}
+
 function createWindow() {
   const preload = path.join(__dirname, "preload.js");
   const mainWindow = new BrowserWindow({
@@ -69,12 +80,61 @@ async function setupORPC() {
   });
 }
 
+// macOS: Handle file open events (when user double-clicks .card file)
+app.on("open-file", (event, filePath) => {
+  event.preventDefault();
+
+  if (filePath.endsWith(".card")) {
+    filePathToOpen = filePath;
+
+    // If app is already running, send to renderer
+    const mainWindow = ipcContext.getMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.send("open-card-file", filePath);
+    }
+  }
+});
+
+// Handle second-instance for Windows (when app is already running and user opens a file)
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (_event, commandLine) => {
+    // Someone tried to run a second instance, focus our window
+    const mainWindow = ipcContext.getMainWindow();
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+
+      // Check for .card file in command line
+      const cardFile = commandLine.find(arg => arg.endsWith(".card"));
+      if (cardFile) {
+        mainWindow.webContents.send("open-card-file", cardFile);
+      }
+    }
+  });
+}
+
 app
   .whenReady()
   .then(createWindow)
   .then(installExtensions)
   .then(checkForUpdates)
-  .then(setupORPC);
+  .then(setupORPC)
+  .then(() => {
+    // Send file path to open after window is ready (if launched with file)
+    if (filePathToOpen) {
+      const mainWindow = ipcContext.getMainWindow();
+      if (mainWindow) {
+        // Wait for renderer to be ready
+        mainWindow.webContents.on("did-finish-load", () => {
+          mainWindow.webContents.send("open-card-file", filePathToOpen);
+        });
+      }
+    }
+  });
 
 //osX only
 app.on("window-all-closed", () => {

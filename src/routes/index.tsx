@@ -10,12 +10,12 @@ import {
   faCircleInfo,
   faFileCsv,
 } from "@fortawesome/free-solid-svg-icons";
-import { loadSession } from "@/actions/file";
 import { useSession } from "@/context/session-context";
+import { toast } from "sonner";
 
 function WelcomePage() {
   const navigate = useNavigate();
-  const { setApiKey, setModel } = useSession();
+  const { loadSessionFromFile } = useSession();
 
   const handleImportGiftList = () => {
     navigate({
@@ -32,43 +32,30 @@ function WelcomePage() {
 
   const handleContinueSession = async () => {
     try {
-      const result = await loadSession();
-      if (result.success && result.session) {
-        // Restore API config from saved session to context
-        if (result.session.openRouterApiKey) {
-          setApiKey(result.session.openRouterApiKey);
-        }
-        if (result.session.model) {
-          setModel(result.session.model);
-        }
-
-        // Check if any recipient has a complete address that needs validation
-        // Only go to validation page if there are pending addresses to validate
-        const hasPendingAddressValidation = result.session.recipients.some(
-          (r) =>
-            r.address1 &&
-            r.city &&
-            r.state &&
-            r.zip &&
-            r.addressValidated === undefined
-        );
-
-        if (hasPendingAddressValidation) {
-          // Navigate to address validation page
-          navigate({
-            to: "/validate-addresses",
-            search: { recipients: JSON.stringify(result.session.recipients) },
-          });
+      const result = await loadSessionFromFile();
+      if (result.success) {
+        if (result.hasRecipients) {
+          toast.success("Session loaded successfully");
+          // Navigate to editor - session context has the data
+          navigate({ to: "/editor", search: { recipients: "" } });
         } else {
-          // No pending addresses to validate, go directly to editor
+          // Settings-only file - go to import page
+          toast.success("Settings loaded. Import a gift list to continue.");
           navigate({
-            to: "/editor",
-            search: { recipients: JSON.stringify(result.session.recipients) },
+            to: "/import",
+            search: {
+              filePath: "",
+              fileName: "",
+              headers: "[]",
+              rowCount: 0,
+              mapping: "{}",
+            },
           });
         }
       }
     } catch (error) {
       console.error("Failed to load session:", error);
+      toast.error("Failed to load session");
     }
   };
 

@@ -1,21 +1,31 @@
 /**
- * Settings encryption/decryption utility
- * Uses AES-GCM for symmetric encryption with a hardcoded key
+ * Unified .card file format encryption/decryption utility
+ * Combines settings and session data into a single encrypted file
+ * Uses AES-GCM for symmetric encryption
  */
 
-// Hardcoded encryption key (32 bytes for AES-256)
-// This provides basic obfuscation for shared settings files
-const ENCRYPTION_KEY = "WeddingThankYou2024SecureKey!@#$";
-const SETTINGS_FILE_VERSION = 1;
+import type { Session, Recipient } from "@/types/recipient";
 
-export interface ExportedSettings {
+// Hardcoded encryption key (32 bytes for AES-256)
+// This provides basic obfuscation for shared card files
+const ENCRYPTION_KEY = "WeddingThankYou2024SecureKey!@#$";
+const CARD_FILE_VERSION = 1;
+const CARD_FILE_MAGIC = "WTYC"; // Wedding Thank You Card
+
+export interface CardFileData {
   version: number;
+  magic: string;
+  // Settings
   openRouterApiKey: string;
   model: string;
   googleMapsApiKey: string;
   systemPrompt: string;
   userPromptTemplate: string;
+  // Session data
+  recipients: Recipient[];
+  // Metadata
   exportedAt: string;
+  appVersion?: string;
 }
 
 // Convert string to ArrayBuffer
@@ -60,13 +70,45 @@ async function getCryptoKey(): Promise<CryptoKey> {
 }
 
 /**
- * Encrypt settings object to a base64 string
+ * Create card file data from current session and settings
+ * @param includeRecipients - If false, recipients array will be empty (for settings-only export)
  */
-export async function encryptSettings(
-  settings: ExportedSettings
-): Promise<string> {
+export function createCardFileData(data: {
+  // Settings
+  openRouterApiKey: string;
+  model: string;
+  googleMapsApiKey: string;
+  systemPrompt: string;
+  userPromptTemplate: string;
+  // Session (optional - for settings-only export)
+  recipients?: Recipient[];
+}, includeRecipients: boolean = true): CardFileData {
+  return {
+    version: CARD_FILE_VERSION,
+    magic: CARD_FILE_MAGIC,
+    openRouterApiKey: data.openRouterApiKey,
+    model: data.model,
+    googleMapsApiKey: data.googleMapsApiKey,
+    systemPrompt: data.systemPrompt,
+    userPromptTemplate: data.userPromptTemplate,
+    recipients: includeRecipients ? (data.recipients || []) : [],
+    exportedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Check if card file contains recipients
+ */
+export function hasRecipients(data: CardFileData): boolean {
+  return data.recipients && data.recipients.length > 0;
+}
+
+/**
+ * Encrypt card file data to a base64 string
+ */
+export async function encryptCardFile(data: CardFileData): Promise<string> {
   const key = await getCryptoKey();
-  const plaintext = JSON.stringify(settings);
+  const plaintext = JSON.stringify(data);
   const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for AES-GCM
 
   const encrypted = await crypto.subtle.encrypt(
@@ -84,11 +126,11 @@ export async function encryptSettings(
 }
 
 /**
- * Decrypt base64 string back to settings object
+ * Decrypt base64 string back to card file data
  */
-export async function decryptSettings(
+export async function decryptCardFile(
   encryptedBase64: string
-): Promise<ExportedSettings> {
+): Promise<CardFileData> {
   const key = await getCryptoKey();
   const combined = new Uint8Array(base64ToArrayBuffer(encryptedBase64));
 
@@ -103,35 +145,42 @@ export async function decryptSettings(
   );
 
   const plaintext = arrayBufferToString(decrypted);
-  const settings = JSON.parse(plaintext) as ExportedSettings;
+  const data = JSON.parse(plaintext) as CardFileData;
 
-  // Validate version
-  if (settings.version !== SETTINGS_FILE_VERSION) {
+  // Validate magic and version
+  if (data.magic !== CARD_FILE_MAGIC) {
+    throw new Error("Invalid card file format");
+  }
+
+  if (data.version !== CARD_FILE_VERSION) {
     throw new Error(
-      `Unsupported settings file version: ${settings.version}. Expected: ${SETTINGS_FILE_VERSION}`
+      `Unsupported card file version: ${data.version}. Expected: ${CARD_FILE_VERSION}`
     );
   }
 
-  return settings;
+  return data;
 }
 
 /**
- * Create settings export object from current session values
+ * Extract settings from card file data
  */
-export function createExportSettings(data: {
-  openRouterApiKey: string;
-  model: string;
-  googleMapsApiKey: string;
-  systemPrompt: string;
-  userPromptTemplate: string;
-}): ExportedSettings {
+export function extractSettings(data: CardFileData) {
   return {
-    version: SETTINGS_FILE_VERSION,
     openRouterApiKey: data.openRouterApiKey,
     model: data.model,
     googleMapsApiKey: data.googleMapsApiKey,
     systemPrompt: data.systemPrompt,
     userPromptTemplate: data.userPromptTemplate,
-    exportedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Extract session from card file data
+ */
+export function extractSession(data: CardFileData): Omit<Session, "filePath"> {
+  return {
+    openRouterApiKey: data.openRouterApiKey,
+    model: data.model,
+    recipients: data.recipients,
   };
 }

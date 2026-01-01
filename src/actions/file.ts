@@ -1,5 +1,5 @@
 import { ipc } from "@/ipc/manager";
-import type { Session, Recipient } from "@/types/recipient";
+import type { Recipient } from "@/types/recipient";
 
 export interface ColumnMapping {
   title: string;
@@ -26,14 +26,33 @@ export function parseCsvWithMapping(filePath: string, mapping: ColumnMapping) {
   return ipc.client.file.parseCsvWithMapping({ filePath, mapping });
 }
 
-export function saveSession(session: Session, saveAs?: boolean) {
-  return ipc.client.file.saveSession({ session, saveAs });
-}
-
-export function loadSession() {
-  return ipc.client.file.loadSession();
-}
+type ExportableField =
+  | "title" | "firstName" | "lastName"
+  | "partnerTitle" | "partnerFirst" | "partnerLast"
+  | "addressTo" | "address1" | "address2"
+  | "city" | "state" | "zip" | "country"
+  | "gift" | "giftValue" | "generatedMessage";
 
 export function exportCsv(recipients: Recipient[], fields?: (keyof Recipient)[]) {
-  return ipc.client.file.exportCsv({ recipients, fields: fields as string[] });
+  return ipc.client.file.exportCsv({
+    recipients,
+    fields: fields as ExportableField[] | undefined
+  });
+}
+
+// Card file operations (unified encrypted format)
+export function saveCardFile(
+  encryptedData: string,
+  saveAs?: boolean,
+  currentFilePath?: string
+) {
+  return ipc.client.file.saveCardFile({ encryptedData, saveAs, currentFilePath });
+}
+
+export function loadCardFile() {
+  return ipc.client.file.loadCardFile();
+}
+
+export function loadCardFileFromPath(filePath: string) {
+  return ipc.client.file.loadCardFileFromPath({ filePath });
 }

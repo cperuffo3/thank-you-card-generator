@@ -21,12 +21,13 @@ import {
   faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { VisuallyHidden } from "radix-ui";
-import { ipc } from "@/ipc/manager";
+import { saveCardFile, loadCardFile } from "@/actions/file";
 import {
-  encryptSettings,
-  decryptSettings,
-  createExportSettings,
-} from "@/utils/settings-crypto";
+  createCardFileData,
+  encryptCardFile,
+  decryptCardFile,
+  extractSettings,
+} from "@/utils/card-crypto";
 
 interface SettingsExportDialogProps {
   open: boolean;
@@ -76,18 +77,17 @@ function SettingsExportDialogContent({
       setStatus("exporting");
       setMessage("");
 
-      const settings = createExportSettings({
+      // Create card file data with settings only (no recipients)
+      const cardData = createCardFileData({
         openRouterApiKey,
         model,
         googleMapsApiKey,
         systemPrompt,
         userPromptTemplate,
-      });
+      }, false); // false = don't include recipients
 
-      const encryptedData = await encryptSettings(settings);
-      const result = await ipc.client.file.saveEncryptedSettings({
-        encryptedData,
-      });
+      const encryptedData = await encryptCardFile(cardData);
+      const result = await saveCardFile(encryptedData, true); // Always show save dialog
 
       if (result.success) {
         setStatus("exported");
@@ -109,10 +109,11 @@ function SettingsExportDialogContent({
       setStatus("importing");
       setMessage("");
 
-      const result = await ipc.client.file.loadEncryptedSettings();
+      const result = await loadCardFile();
 
       if (result.success && result.encryptedData) {
-        const settings = await decryptSettings(result.encryptedData);
+        const cardData = await decryptCardFile(result.encryptedData);
+        const settings = extractSettings(cardData);
 
         onImport({
           openRouterApiKey: settings.openRouterApiKey,

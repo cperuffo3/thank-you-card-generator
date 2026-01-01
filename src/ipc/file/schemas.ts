@@ -101,3 +101,27 @@ export const exportedSettingsSchema = z.object({
 export const saveEncryptedSettingsInputSchema = z.object({
   encryptedData: z.string(),
 });
+
+// Card file schemas (unified format)
+export const cardFileDataSchema = z.object({
+  version: z.number(),
+  magic: z.string(),
+  openRouterApiKey: z.string(),
+  model: z.string(),
+  googleMapsApiKey: z.string(),
+  systemPrompt: z.string(),
+  userPromptTemplate: z.string(),
+  recipients: z.array(recipientSchema),
+  exportedAt: z.string(),
+  appVersion: z.string().optional(),
+});
+
+export const saveCardFileInputSchema = z.object({
+  encryptedData: z.string(),
+  saveAs: z.boolean().optional(),
+  currentFilePath: z.string().optional(),
+});
+
+export const loadCardFileFromPathInputSchema = z.object({
+  filePath: z.string(),
+});

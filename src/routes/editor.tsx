@@ -2,30 +2,41 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { EditorSidebar, EditorContent } from "@/components/editor";
 import { ExportDialog } from "@/components/export-dialog";
-import { saveSession, exportCsv } from "@/actions/file";
+import { exportCsv } from "@/actions/file";
 import { generateMessage, regenerateMessage } from "@/services/openrouter";
 import { useSession } from "@/context/session-context";
-import type { Recipient, Session } from "@/types/recipient";
+import type { Recipient } from "@/types/recipient";
 import { toast } from "sonner";
 
 function EditorPage() {
   const { recipients: recipientsParam } = Route.useSearch();
-  const { apiKey, model, systemPrompt, userPromptTemplate } = useSession();
+  const {
+    apiKey,
+    model,
+    systemPrompt,
+    userPromptTemplate,
+    session,
+    setSession,
+    saveCurrentSession,
+    cardFilePath,
+  } = useSession();
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [currentRecipientId, setCurrentRecipientId] = useState<string | null>(
     null,
   );
-  const [filePath] = useState<string | undefined>(undefined);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const hasInitializedRef = useRef(false);
 
-  // Parse recipients from URL params
+  // Parse recipients from URL params or session context
   useEffect(() => {
-    if (recipientsParam && !hasInitializedRef.current) {
+    if (hasInitializedRef.current) return;
+
+    // First try URL params
+    if (recipientsParam) {
       try {
         const parsed = JSON.parse(recipientsParam) as Recipient[];
         setRecipients(parsed);
@@ -33,11 +44,19 @@ function EditorPage() {
           setCurrentRecipientId(parsed[0].id);
         }
         hasInitializedRef.current = true;
+        return;
       } catch {
         toast.error("Failed to parse recipient data");
       }
     }
-  }, [recipientsParam]);
+
+    // Fall back to session context (for file open events)
+    if (session?.recipients && session.recipients.length > 0) {
+      setRecipients(session.recipients);
+      setCurrentRecipientId(session.recipients[0].id);
+      hasInitializedRef.current = true;
+    }
+  }, [recipientsParam, session]);
 
   const currentRecipient = recipients.find(
     (r) => r.id === currentRecipientId,
@@ -145,17 +164,20 @@ function EditorPage() {
       return;
     }
 
+    // Sync local recipients to session before saving
+    setSession({
+      openRouterApiKey: apiKey,
+      model,
+      recipients,
+    });
+
     setIsSaving(true);
 
     try {
-      const session: Session = {
-        openRouterApiKey: apiKey,
-        model,
-        recipients,
-        filePath,
-      };
-      await saveSession(session, true);
-      toast.success("Session saved successfully");
+      const result = await saveCurrentSession(true); // saveAs = true to show dialog
+      if (result.success) {
+        toast.success("Session saved successfully");
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save session");
     } finally {
@@ -174,24 +196,25 @@ function EditorPage() {
     setCurrentRecipientId(recipients[newIndex].id);
   };
 
-  // Auto-save periodically
+  // Auto-save periodically (only if we have a file path already)
   useEffect(() => {
     const interval = setInterval(() => {
-      if (recipients.length > 0 && filePath) {
-        const session: Session = {
+      if (recipients.length > 0 && cardFilePath) {
+        // Sync local recipients to session
+        setSession({
           openRouterApiKey: apiKey,
           model,
           recipients,
-          filePath,
-        };
-        saveSession(session, false).catch(() => {
+        });
+        // Save without showing dialog
+        saveCurrentSession(false).catch(() => {
           // Silent fail for auto-save
         });
       }
     }, 60000); // Auto-save every minute
 
     return () => clearInterval(interval);
-  }, [recipients, filePath, apiKey, model]);
+  }, [recipients, cardFilePath, apiKey, model, setSession, saveCurrentSession]);
 
   if (recipients.length === 0) {
     return (
