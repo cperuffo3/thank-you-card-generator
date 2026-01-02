@@ -3,11 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.3.5](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.4...v1.3.5) (2026-01-02)
+
+### Bug Fixes
+
+* icns bug ([0e11a4d](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/0e11a4ddab45c6c5879861d5d048f93017e87060))
+
 ## [1.3.4](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.3...v1.3.4) (2026-01-02)
 
 ### Bug Fixes
 
-* gift bug ([f0331c7](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/f0331c7c7bb0cfc4f96ac7e8bab08e3eb24fcf6f))
+- gift bug ([f0331c7](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/f0331c7c7bb0cfc4f96ac7e8bab08e3eb24fcf6f))
 
 ## [1.3.3](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.2...v1.3.3) (2026-01-02)
 
