@@ -3,11 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.3.2](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.1...v1.3.2) (2026-01-02)
+
+### Bug Fixes
+
+* naming bugs ([21edc8f](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/21edc8f7105c223fed2a487ee626e42d7c488ef5))
+
 ## [1.3.1](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.0...v1.3.1) (2026-01-02)
 
 ### Bug Fixes
 
-* mac bugs ([a61dd82](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/a61dd82f75b8d843fef2c03ffaa5f4f436dc1fac))
+- mac bugs ([a61dd82](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/a61dd82f75b8d843fef2c03ffaa5f4f436dc1fac))
 
 ## [1.3.0](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.2.0...v1.3.0) (2026-01-02)
 
