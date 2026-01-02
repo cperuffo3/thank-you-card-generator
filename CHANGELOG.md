@@ -3,11 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.3.7](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.6...v1.3.7) (2026-01-02)
+
+### Bug Fixes
+
+* dialog scaling issue ([413ff01](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/413ff0126182aeb1f42d0334db03d7c25ac19fc7))
+
 ## [1.3.6](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.5...v1.3.6) (2026-01-02)
 
 ### Bug Fixes
 
-* recipient numbering and dialog scaling ([86a5e95](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/86a5e95b57c7e58ee82026768f0a8a9be9df4004))
+- recipient numbering and dialog scaling ([86a5e95](https://github.com/cperuffo3/wedding-thank-you-card-generator/commit/86a5e95b57c7e58ee82026768f0a8a9be9df4004))
 
 ## [1.3.5](https://github.com/cperuffo3/wedding-thank-you-card-generator/compare/v1.3.4...v1.3.5) (2026-01-02)
 
