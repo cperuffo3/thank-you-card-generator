@@ -31,6 +31,7 @@ const config: ForgeConfig = {
           UTTypeIdentifier: "com.thank-you-cards.card",
           UTTypeDescription: "Thank You Card File",
           UTTypeConformsTo: ["public.data"],
+          UTTypeIconFile: "icon.icns",
           UTTypeTagSpecification: {
             "public.filename-extension": ["card"],
           },
