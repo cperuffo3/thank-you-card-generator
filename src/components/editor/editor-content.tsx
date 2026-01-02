@@ -331,7 +331,7 @@ export function EditorContent({
                       {recipient.gift}
                     </p>
                   ) : (
-                    <p className="text-lg italic text-gray-400">
+                    <p className="text-lg text-gray-400 italic">
                       No gift recorded
                     </p>
                   )}
