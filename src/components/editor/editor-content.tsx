@@ -316,43 +316,47 @@ export function EditorContent({
           />
 
           {/* Gift Card */}
-          {recipient.gift && (
-            <div className="bg-gradient-subtle rounded-xl border border-purple-200 p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-12 items-center justify-center rounded-lg bg-white shadow-sm">
-                    <Gift className="size-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                      Gift Received
-                    </p>
+          <div className="bg-gradient-subtle rounded-xl border border-purple-200 p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex size-12 items-center justify-center rounded-lg bg-white shadow-sm">
+                  <Gift className="size-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                    Gift Received
+                  </p>
+                  {recipient.gift ? (
                     <p className="text-lg font-bold text-gray-900">
                       {recipient.gift}
                     </p>
-                  </div>
+                  ) : (
+                    <p className="text-lg italic text-gray-400">
+                      No gift recorded
+                    </p>
+                  )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditGiftDialogOpen(true)}
-                  className="size-8 p-0 text-gray-500 hover:text-gray-700"
-                >
-                  <Pencil className="size-4" />
-                </Button>
               </div>
-              {recipient.giftValue && (
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Value:</span>
-                  <span className="text-2xl font-bold text-indigo-600">
-                    {recipient.giftValue.startsWith("$")
-                      ? recipient.giftValue
-                      : `$${recipient.giftValue}`}
-                  </span>
-                </div>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditGiftDialogOpen(true)}
+                className="size-8 p-0 text-gray-500 hover:text-gray-700"
+              >
+                <Pencil className="size-4" />
+              </Button>
             </div>
-          )}
+            {recipient.giftValue && (
+              <div className="mt-4 flex items-center gap-2">
+                <span className="text-sm text-gray-600">Value:</span>
+                <span className="text-2xl font-bold text-indigo-600">
+                  {recipient.giftValue.startsWith("$")
+                    ? recipient.giftValue
+                    : `$${recipient.giftValue}`}
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Edit Gift Dialog */}
           <EditGiftDialog
