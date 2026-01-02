@@ -106,7 +106,7 @@ function checkForUpdates() {
   updateElectronApp({
     updateSource: {
       type: UpdateSourceType.ElectronPublicUpdateService,
-      repo: "LuanRoger/electron-shadcn",
+      repo: "cperuffo3/thank-you-card-generator",
     },
   });
 }
