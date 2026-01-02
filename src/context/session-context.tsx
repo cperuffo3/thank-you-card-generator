@@ -27,7 +27,9 @@ const MODEL_STORAGE_KEY = "openrouter-model";
 const GOOGLE_MAPS_API_KEY_STORAGE_KEY = "google-maps-api-key";
 const SYSTEM_PROMPT_STORAGE_KEY = "ai-system-prompt";
 const USER_PROMPT_TEMPLATE_STORAGE_KEY = "ai-user-prompt-template";
+const SIGNOFF_MESSAGE_STORAGE_KEY = "signoff-message";
 const DEFAULT_MODEL = "google/gemini-3-flash-preview";
+export const DEFAULT_SIGNOFF_MESSAGE = "With love and gratitude,\n[Your Names]";
 
 // Default prompts
 export const DEFAULT_SYSTEM_PROMPT = `You are an expert at writing heartfelt, personalized wedding thank you card messages.
@@ -82,6 +84,9 @@ interface SessionContextValue {
   userPromptTemplate: string;
   setUserPromptTemplate: (template: string) => void;
   resetPromptsToDefaults: () => void;
+  // Signoff message
+  signoffMessage: string;
+  setSignoffMessage: (message: string) => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -144,6 +149,17 @@ export function SessionProvider({ children }: SessionProviderProps) {
     },
   );
 
+  // Signoff message state
+  const [signoffMessage, setSignoffMessageState] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem(SIGNOFF_MESSAGE_STORAGE_KEY) ||
+        DEFAULT_SIGNOFF_MESSAGE
+      );
+    }
+    return DEFAULT_SIGNOFF_MESSAGE;
+  });
+
   // Persist API key to localStorage
   const setApiKey = useCallback((key: string) => {
     setApiKeyState(key);
@@ -189,6 +205,14 @@ export function SessionProvider({ children }: SessionProviderProps) {
     setUserPromptTemplateState(template);
     if (typeof window !== "undefined") {
       localStorage.setItem(USER_PROMPT_TEMPLATE_STORAGE_KEY, template);
+    }
+  }, []);
+
+  // Persist signoff message to localStorage
+  const setSignoffMessage = useCallback((message: string) => {
+    setSignoffMessageState(message);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SIGNOFF_MESSAGE_STORAGE_KEY, message);
     }
   }, []);
 
@@ -445,6 +469,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
     userPromptTemplate,
     setUserPromptTemplate,
     resetPromptsToDefaults,
+    // Signoff message
+    signoffMessage,
+    setSignoffMessage,
   };
 
   return (

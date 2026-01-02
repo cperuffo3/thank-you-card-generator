@@ -9,6 +9,7 @@ import {
 import { RecipientEditDialog } from "@/components/editor/recipient-edit-dialog";
 import { AIEditDialog } from "@/components/editor/ai-edit-dialog";
 import { AIPromptSettingsDialog } from "@/components/editor/ai-prompt-settings-dialog";
+import { CopyFieldsDialog } from "@/components/editor/copy-fields-dialog";
 import { EditGiftDialog } from "@/components/edit-gift-dialog";
 import { useSession } from "@/context/session-context";
 import type { Recipient } from "@/types/recipient";
@@ -92,7 +93,7 @@ export function EditorContent({
   const [isEditGiftDialogOpen, setIsEditGiftDialogOpen] = useState(false);
   const [isAIEditDialogOpen, setIsAIEditDialogOpen] = useState(false);
   const [isPromptSettingsOpen, setIsPromptSettingsOpen] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const [isCopyFieldsDialogOpen, setIsCopyFieldsDialogOpen] = useState(false);
   const {
     systemPrompt,
     setSystemPrompt,
@@ -142,14 +143,6 @@ export function EditorContent({
 
   const handleAIEditGenerate = (modificationRequest: string) => {
     onRegenerate(modificationRequest);
-  };
-
-  const handleCopy = async () => {
-    if (recipient.generatedMessage) {
-      await navigator.clipboard.writeText(recipient.generatedMessage);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    }
   };
 
   const handleSaveGift = (gift: string, giftValue: string) => {
@@ -417,6 +410,14 @@ export function EditorContent({
             onSave={handleSavePromptSettings}
           />
 
+          {/* Copy Fields Dialog */}
+          <CopyFieldsDialog
+            open={isCopyFieldsDialogOpen}
+            onOpenChange={setIsCopyFieldsDialogOpen}
+            addressTo={recipient.addressTo || displayName}
+            thankYouMessage={recipient.generatedMessage || ""}
+          />
+
           {/* Generate Button */}
           {!recipient.generatedMessage && (
             <Button
@@ -491,20 +492,11 @@ export function EditorContent({
                 )}
                 {recipient.isApproved ? (
                   <Button
-                    onClick={handleCopy}
-                    className={`h-12 flex-1 ${isCopied ? "bg-green-500 hover:bg-green-600" : "bg-purple-500 hover:bg-purple-600"}`}
+                    onClick={() => setIsCopyFieldsDialogOpen(true)}
+                    className="h-12 flex-1 bg-purple-500 hover:bg-purple-600"
                   >
-                    {isCopied ? (
-                      <>
-                        <Check className="mr-2 size-4" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 size-4" />
-                        Copy
-                      </>
-                    )}
+                    <Copy className="mr-2 size-4" />
+                    Copy
                   </Button>
                 ) : (
                   <>
