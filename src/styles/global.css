@@ -215,79 +215,57 @@
   }
 
   /* Dialog/portal scaling - these render outside #root */
-  /* Dialog content needs translate preserved */
-  [data-slot="dialog-content"] {
-    --dialog-scale: 1;
-  }
-
-  /* Select/popover content uses different positioning */
+  /* Use CSS zoom instead of transform to avoid breaking existing transforms */
+  [data-slot="dialog-content"],
   [data-slot="select-content"],
-  [data-slot="popover-content"] {
-    --portal-scale: 1;
-  }
-
-  /* Toasts (sonner) */
+  [data-slot="popover-content"],
   [data-sonner-toaster] {
-    --toast-scale: 1;
+    --ui-scale: 1;
+    zoom: var(--ui-scale);
   }
 
   @media (max-height: 700px) {
     [data-slot="dialog-content"] {
-      --dialog-scale: 0.7;
-      transform: translate(-50%, -50%) scale(var(--dialog-scale));
-      max-height: calc(90vh / var(--dialog-scale));
+      --ui-scale: 0.7;
     }
 
     [data-slot="select-content"],
     [data-slot="popover-content"] {
-      --portal-scale: 0.75;
-      transform: scale(var(--portal-scale));
+      --ui-scale: 0.75;
     }
 
     [data-sonner-toaster] {
-      --toast-scale: 0.75;
-      transform: scale(var(--toast-scale));
-      transform-origin: bottom right;
+      --ui-scale: 0.75;
     }
   }
 
   @media (min-height: 701px) and (max-height: 800px) {
     [data-slot="dialog-content"] {
-      --dialog-scale: 0.8;
-      transform: translate(-50%, -50%) scale(var(--dialog-scale));
-      max-height: calc(90vh / var(--dialog-scale));
+      --ui-scale: 0.8;
     }
 
     [data-slot="select-content"],
     [data-slot="popover-content"] {
-      --portal-scale: 0.85;
-      transform: scale(var(--portal-scale));
+      --ui-scale: 0.85;
     }
 
     [data-sonner-toaster] {
-      --toast-scale: 0.85;
-      transform: scale(var(--toast-scale));
-      transform-origin: bottom right;
+      --ui-scale: 0.85;
     }
   }
 
   @media (min-height: 801px) and (max-height: 950px) {
     [data-slot="dialog-content"] {
-      --dialog-scale: 0.88;
-      transform: translate(-50%, -50%) scale(var(--dialog-scale));
-      max-height: calc(90vh / var(--dialog-scale));
+      --ui-scale: 0.88;
     }
 
     [data-slot="select-content"],
     [data-slot="popover-content"] {
-      --portal-scale: 0.92;
-      transform: scale(var(--portal-scale));
+      --ui-scale: 0.92;
     }
 
     [data-sonner-toaster] {
-      --toast-scale: 0.92;
-      transform: scale(var(--toast-scale));
-      transform-origin: bottom right;
+      --ui-scale: 0.92;
     }
   }
 }
