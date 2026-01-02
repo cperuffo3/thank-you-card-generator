@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { EditorSidebar, EditorContent } from "@/components/editor";
 import { ExportDialog } from "@/components/export-dialog";
@@ -58,10 +58,27 @@ function EditorPage() {
     }
   }, [recipientsParam, session]);
 
-  const currentRecipient = recipients.find((r) => r.id === currentRecipientId);
+  // Sort recipients alphabetically to match sidebar display order
+  const sortedRecipients = useMemo(() => {
+    return [...recipients].sort((a, b) => {
+      const aName =
+        `${a.firstName || a.partnerFirst || ""}${a.lastName || a.partnerLast || ""}`
+          .toLowerCase()
+          .replace(/\s/g, "");
+      const bName =
+        `${b.firstName || b.partnerFirst || ""}${b.lastName || b.partnerLast || ""}`
+          .toLowerCase()
+          .replace(/\s/g, "");
+      return aName.localeCompare(bName);
+    });
+  }, [recipients]);
+
+  const currentRecipient = sortedRecipients.find(
+    (r) => r.id === currentRecipientId,
+  );
 
   const currentIndex =
-    recipients.findIndex((r) => r.id === currentRecipientId) ?? -1;
+    sortedRecipients.findIndex((r) => r.id === currentRecipientId) ?? -1;
 
   const updateRecipient = useCallback(
     (updates: Partial<Recipient>) => {
@@ -187,14 +204,14 @@ function EditorPage() {
   };
 
   const navigateToRecipient = (direction: "prev" | "next") => {
-    if (recipients.length === 0 || currentIndex === -1) return;
+    if (sortedRecipients.length === 0 || currentIndex === -1) return;
 
     const newIndex =
       direction === "prev"
         ? Math.max(0, currentIndex - 1)
-        : Math.min(recipients.length - 1, currentIndex + 1);
+        : Math.min(sortedRecipients.length - 1, currentIndex + 1);
 
-    setCurrentRecipientId(recipients[newIndex].id);
+    setCurrentRecipientId(sortedRecipients[newIndex].id);
   };
 
   // Auto-save periodically (only if we have a file path already)
@@ -231,7 +248,7 @@ function EditorPage() {
     <div className="flex h-full flex-col">
       <div className="flex flex-1 overflow-hidden">
         <EditorSidebar
-          recipients={recipients}
+          recipients={sortedRecipients}
           selectedId={currentRecipientId}
           onSelect={setCurrentRecipientId}
           onExport={handleOpenExportDialog}
@@ -251,7 +268,7 @@ function EditorPage() {
           <EditorContent
             recipient={currentRecipient}
             currentIndex={currentIndex}
-            totalCount={recipients.length}
+            totalCount={sortedRecipients.length}
             isGenerating={isGenerating}
             onUpdateRecipient={updateRecipient}
             onGenerate={handleGenerate}

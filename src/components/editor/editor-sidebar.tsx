@@ -39,24 +39,13 @@ export function EditorSidebar({
 }: EditorSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Recipients are already sorted alphabetically by parent component
   const filteredRecipients = useMemo(() => {
-    const filtered = searchQuery.trim()
+    return searchQuery.trim()
       ? recipients.filter((recipient) =>
           getSearchableText(recipient).includes(searchQuery.toLowerCase()),
         )
       : recipients;
-
-    return [...filtered].sort((a, b) => {
-      const aName =
-        `${a.firstName || a.partnerFirst || ""}${a.lastName || a.partnerLast || ""}`
-          .toLowerCase()
-          .replace(/\s/g, "");
-      const bName =
-        `${b.firstName || b.partnerFirst || ""}${b.lastName || b.partnerLast || ""}`
-          .toLowerCase()
-          .replace(/\s/g, "");
-      return aName.localeCompare(bName);
-    });
   }, [recipients, searchQuery]);
 
   const approvedCount = recipients.filter((r) => r.isApproved).length;
