@@ -14,13 +14,13 @@ interface EditorSidebarCardProps {
 }
 
 function getRecipientDisplayName(recipient: Recipient): string {
-  const lastName = recipient.lastName || recipient.partnerLast;
   const firstName = recipient.firstName || recipient.partnerFirst;
+  const lastName = recipient.lastName || recipient.partnerLast;
 
-  if (lastName && firstName) {
-    return `${lastName}, ${firstName}`;
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`;
   }
-  return lastName || firstName || "Unnamed";
+  return firstName || lastName || "Unnamed";
 }
 
 type RecipientStatus = "approved" | "draft" | "none";

@@ -415,6 +415,16 @@ export function EditorContent({
             open={isCopyFieldsDialogOpen}
             onOpenChange={setIsCopyFieldsDialogOpen}
             addressTo={recipient.addressTo || displayName}
+            address={[
+              recipient.address1,
+              recipient.address2,
+              [recipient.city, recipient.state, recipient.zip]
+                .filter(Boolean)
+                .join(", "),
+              recipient.country,
+            ]
+              .filter(Boolean)
+              .join("\n")}
             thankYouMessage={recipient.generatedMessage || ""}
           />
 

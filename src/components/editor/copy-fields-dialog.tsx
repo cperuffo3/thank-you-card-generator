@@ -18,11 +18,13 @@ interface CopyFieldsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   addressTo: string;
+  address: string;
   thankYouMessage: string;
 }
 
 interface CopyFieldsDialogContentProps {
   addressTo: string;
+  address: string;
   thankYouMessage: string;
 }
 
@@ -30,6 +32,7 @@ type CopiedField = "addressTo" | "thankYouMessage" | "signoffMessage" | null;
 
 function CopyFieldsDialogContent({
   addressTo,
+  address,
   thankYouMessage,
 }: CopyFieldsDialogContentProps) {
   const { signoffMessage, setSignoffMessage } = useSession();
@@ -121,6 +124,22 @@ function CopyFieldsDialogContent({
           </div>
         </div>
 
+        {/* Address Field (display only, for validation) */}
+        <div className="flex flex-col gap-3">
+          <label className="text-sm font-semibold text-gray-900">
+            Address
+          </label>
+          <div className="flex items-stretch gap-2">
+            <div className="flex-1 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3">
+              <p className="text-sm whitespace-pre-wrap text-gray-700">
+                {address || "—"}
+              </p>
+            </div>
+            {/* Invisible placeholder to match button width */}
+            <div className="w-13 shrink-0" />
+          </div>
+        </div>
+
         {/* Thank You Message Field */}
         <div className="flex flex-col gap-3">
           <label className="text-sm font-semibold text-gray-900">
@@ -133,7 +152,7 @@ function CopyFieldsDialogContent({
               </p>
             </div>
             <Button
-              onClick={() => handleCopy("thankYouMessage", thankYouMessage)}
+              onClick={() => handleCopy("thankYouMessage", "\n" + thankYouMessage)}
               disabled={!thankYouMessage}
               className={`h-auto shrink-0 rounded-xl px-4 ${
                 copiedField === "thankYouMessage"
@@ -214,6 +233,7 @@ export function CopyFieldsDialog({
   open,
   onOpenChange,
   addressTo,
+  address,
   thankYouMessage,
 }: CopyFieldsDialogProps) {
   return (
@@ -226,6 +246,7 @@ export function CopyFieldsDialog({
         {open && (
           <CopyFieldsDialogContent
             addressTo={addressTo}
+            address={address}
             thankYouMessage={thankYouMessage}
           />
         )}

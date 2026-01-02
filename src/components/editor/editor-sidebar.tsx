@@ -40,13 +40,21 @@ export function EditorSidebar({
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredRecipients = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return recipients;
-    }
-    const query = searchQuery.toLowerCase();
-    return recipients.filter((recipient) =>
-      getSearchableText(recipient).includes(query),
-    );
+    const filtered = searchQuery.trim()
+      ? recipients.filter((recipient) =>
+          getSearchableText(recipient).includes(searchQuery.toLowerCase()),
+        )
+      : recipients;
+
+    return [...filtered].sort((a, b) => {
+      const aName = `${a.firstName || a.partnerFirst || ""}${a.lastName || a.partnerLast || ""}`
+        .toLowerCase()
+        .replace(/\s/g, "");
+      const bName = `${b.firstName || b.partnerFirst || ""}${b.lastName || b.partnerLast || ""}`
+        .toLowerCase()
+        .replace(/\s/g, "");
+      return aName.localeCompare(bName);
+    });
   }, [recipients, searchQuery]);
 
   const approvedCount = recipients.filter((r) => r.isApproved).length;
