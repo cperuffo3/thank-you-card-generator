@@ -126,9 +126,7 @@ function CopyFieldsDialogContent({
 
         {/* Address Field (display only, for validation) */}
         <div className="flex flex-col gap-3">
-          <label className="text-sm font-semibold text-gray-900">
-            Address
-          </label>
+          <label className="text-sm font-semibold text-gray-900">Address</label>
           <div className="flex items-stretch gap-2">
             <div className="flex-1 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3">
               <p className="text-sm whitespace-pre-wrap text-gray-700">
@@ -152,7 +150,9 @@ function CopyFieldsDialogContent({
               </p>
             </div>
             <Button
-              onClick={() => handleCopy("thankYouMessage", "\n" + thankYouMessage)}
+              onClick={() =>
+                handleCopy("thankYouMessage", "\n" + thankYouMessage)
+              }
               disabled={!thankYouMessage}
               className={`h-auto shrink-0 rounded-xl px-4 ${
                 copiedField === "thankYouMessage"

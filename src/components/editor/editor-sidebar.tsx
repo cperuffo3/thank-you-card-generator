@@ -47,12 +47,14 @@ export function EditorSidebar({
       : recipients;
 
     return [...filtered].sort((a, b) => {
-      const aName = `${a.firstName || a.partnerFirst || ""}${a.lastName || a.partnerLast || ""}`
-        .toLowerCase()
-        .replace(/\s/g, "");
-      const bName = `${b.firstName || b.partnerFirst || ""}${b.lastName || b.partnerLast || ""}`
-        .toLowerCase()
-        .replace(/\s/g, "");
+      const aName =
+        `${a.firstName || a.partnerFirst || ""}${a.lastName || a.partnerLast || ""}`
+          .toLowerCase()
+          .replace(/\s/g, "");
+      const bName =
+        `${b.firstName || b.partnerFirst || ""}${b.lastName || b.partnerLast || ""}`
+          .toLowerCase()
+          .replace(/\s/g, "");
       return aName.localeCompare(bName);
     });
   }, [recipients, searchQuery]);
