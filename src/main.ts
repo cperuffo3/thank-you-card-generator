@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog } from "electron";
+import { app, BrowserWindow, dialog, screen } from "electron";
 import path from "path";
 import {
   installExtension,
@@ -27,9 +27,17 @@ let isForceClosing = false;
 
 function createWindow() {
   const preload = path.join(__dirname, "preload.js");
+
+  // Get the primary display's work area for proper scaling on Retina displays
+  const { workAreaSize } = screen.getPrimaryDisplay();
+
+  // Use 80% of the available screen size, capped at reasonable maximums
+  const width = Math.min(Math.round(workAreaSize.width * 0.8), 1400);
+  const height = Math.min(Math.round(workAreaSize.height * 0.85), 900);
+
   const mainWindow = new BrowserWindow({
-    width: 1920,
-    height: 1080,
+    width,
+    height,
     icon: path.join(__dirname, "../images/icon.png"),
     webPreferences: {
       devTools: inDevelopment,

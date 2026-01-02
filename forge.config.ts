@@ -12,6 +12,8 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: "./images/icon", // No file extension - Forge adds .ico/.icns automatically
+    // Copy icon.icns to Resources folder for document type icon on macOS
+    extraResource: ["./images/icon.icns"],
     // macOS file association configuration
     extendInfo: {
       CFBundleDocumentTypes: [

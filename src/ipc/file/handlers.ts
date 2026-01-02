@@ -11,6 +11,7 @@ import {
 } from "./schemas";
 import type { Recipient } from "@/types/recipient";
 import { generateAddressTo } from "@/utils/address-to";
+import { ipcContext } from "@/ipc/context";
 
 // Parse name that may have "UNMATCHED:" prefix and split into first/last name
 function parseNameField(value: string): {
@@ -40,7 +41,8 @@ function parseNameField(value: string): {
 
 // Open CSV and return raw data with headers for column mapping
 export const openCsv = os.handler(async () => {
-  const result = await dialog.showOpenDialog({
+  const mainWindow = ipcContext.getMainWindow();
+  const result = await dialog.showOpenDialog(mainWindow!, {
     title: "Select CSV File",
     filters: [{ name: "CSV Files", extensions: ["csv"] }],
     properties: ["openFile"],
@@ -215,7 +217,8 @@ export const exportCsv = os
     const { recipients, fields, filename } = input;
     const exportFields = fields || DEFAULT_EXPORT_FIELDS;
 
-    const result = await dialog.showSaveDialog({
+    const mainWindow = ipcContext.getMainWindow();
+    const result = await dialog.showSaveDialog(mainWindow!, {
       title: "Export CSV",
       defaultPath: filename || "Thank You Cards.csv",
       filters: [{ name: "CSV Files", extensions: ["csv"] }],
@@ -253,7 +256,8 @@ export const saveCardFile = os
     let filePath = currentFilePath;
 
     if (!filePath || saveAs) {
-      const result = await dialog.showSaveDialog({
+      const mainWindow = ipcContext.getMainWindow();
+      const result = await dialog.showSaveDialog(mainWindow!, {
         title: "Save Card File",
         defaultPath: "Thank You Cards.card",
         filters: [{ name: "Wedding Card Files", extensions: ["card"] }],
@@ -272,7 +276,8 @@ export const saveCardFile = os
   });
 
 export const loadCardFile = os.handler(async () => {
-  const result = await dialog.showOpenDialog({
+  const mainWindow = ipcContext.getMainWindow();
+  const result = await dialog.showOpenDialog(mainWindow!, {
     title: "Open Card File",
     filters: [{ name: "Wedding Card Files", extensions: ["card"] }],
     properties: ["openFile"],
