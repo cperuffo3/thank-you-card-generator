@@ -58,7 +58,9 @@ function extractTextContent(content: unknown): string {
   }
   if (Array.isArray(content)) {
     return content
-      .filter((item): item is { type: "text"; text: string } => item?.type === "text")
+      .filter(
+        (item): item is { type: "text"; text: string } => item?.type === "text",
+      )
       .map((item) => item.text)
       .join("");
   }
