@@ -51,6 +51,20 @@ function createClient(apiKey: string): OpenRouter {
   });
 }
 
+// Extract text from message content (can be string or array of content items)
+function extractTextContent(content: unknown): string {
+  if (typeof content === "string") {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    return content
+      .filter((item): item is { type: "text"; text: string } => item?.type === "text")
+      .map((item) => item.text)
+      .join("");
+  }
+  return "";
+}
+
 function buildRecipientContext(recipient: Recipient): string {
   const parts: string[] = [];
 
@@ -101,9 +115,11 @@ export async function generateMessage(
     fullRecipientContext,
   );
 
-  const result = client.callModel({
+  // Use chat.send() with stream: false to avoid Responses API streaming issues
+  const response = await client.chat.send({
     model,
-    input: [
+    stream: false,
+    messages: [
       { role: "system", content: systemPrompt },
       {
         role: "user",
@@ -112,7 +128,7 @@ export async function generateMessage(
     ],
   });
 
-  const text = await result.getText();
+  const text = extractTextContent(response.choices?.[0]?.message?.content);
   return text.trim();
 }
 
@@ -141,9 +157,11 @@ export async function regenerateMessage(
     fullRecipientContext,
   );
 
-  const result = client.callModel({
+  // Use chat.send() with stream: false to avoid Responses API streaming issues
+  const response = await client.chat.send({
     model,
-    input: [
+    stream: false,
+    messages: [
       { role: "system", content: systemPrompt },
       {
         role: "user",
@@ -157,7 +175,7 @@ export async function regenerateMessage(
     ],
   });
 
-  const text = await result.getText();
+  const text = extractTextContent(response.choices?.[0]?.message?.content);
   return text.trim();
 }
 
@@ -211,12 +229,19 @@ export function getDefaultModels(): OpenRouterModel[] {
 export async function testConnection(apiKey: string): Promise<boolean> {
   try {
     const client = createClient(apiKey);
-    const result = client.callModel({
+    // Use chat.send() with stream: false to avoid Responses API streaming issues
+    const response = await client.chat.send({
       model: "openai/gpt-4o-mini",
-      input: 'Say "OK" and nothing else.',
+      stream: false,
+      messages: [
+        {
+          role: "user",
+          content: 'Say "OK" and nothing else.',
+        },
+      ],
     });
 
-    const text = await result.getText();
+    const text = extractTextContent(response.choices?.[0]?.message?.content);
     return text.toLowerCase().includes("ok");
   } catch {
     return false;
